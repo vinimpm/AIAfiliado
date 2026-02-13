@@ -55,5 +55,20 @@ services:
       redis:
         condition: service_healthy
 
+  dashboard:
+    build: .
+    command: streamlit run dashboard/app.py --server.port=8501 --server.address=0.0.0.0
+    working_dir: /app/src
+    environment:
+      - DATABASE_URL=postgresql://aiafiliado:localdev@postgres:5432/aiafiliado
+      - ENV=development
+    ports:
+      - "8501:8501"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
+
 volumes:
   pgdata:

@@ -57,6 +57,7 @@ flowchart LR
 | **IaC** | Terraform (14 arquivos, infra completa) |
 | **Video** | HeyGen API (avatar realista) |
 | **LLM** | GPT-4o-mini / Claude Haiku |
+| **Dashboard** | Streamlit + Plotly |
 | **Publicacao** | TikTok Content Posting API, Instagram Graph API, YouTube Data API |
 | **Afiliados** | TikTok Shop, Hotmart, Monetizze, Amazon Associates, Shopee |
 | **CI/CD** | GitHub Actions + Docker |
@@ -74,6 +75,12 @@ src/
 │   ├── healthcheck.py          # Health endpoint (DB + Redis + Celery)
 │   ├── cli.py                  # CLI para comandos manuais
 │   └── logging.py              # Logging estruturado (structlog)
+├── dashboard/                  # Streamlit Dashboard (6 paginas)
+│   ├── app.py                  # Entry point + sidebar + routing
+│   ├── config.py               # DashboardSettings
+│   ├── data/queries.py         # ~25 queries SQLAlchemy (read-only)
+│   ├── components/             # KPI cards, Plotly charts, filtros
+│   └── pages/                  # overview, pipeline, performance, products, financeiro, health
 ├── models/                     # 7 modelos SQLAlchemy 2.0
 │   ├── daily_run.py            # Registro de execucao diaria
 │   ├── trend.py                # Tendencias detectadas
@@ -137,7 +144,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-Isso inicia PostgreSQL, Redis e o worker Celery.
+Isso inicia PostgreSQL, Redis, o worker Celery e o Dashboard (http://localhost:8501).
 
 ### 3. Rodar migrations
 
@@ -151,7 +158,17 @@ docker compose exec worker alembic upgrade head
 docker compose exec worker python -m app.cli trigger_pipeline
 ```
 
-### 5. Acompanhar logs
+### 5. Acessar o Dashboard
+
+Abra http://localhost:8501 no navegador. O dashboard atualiza automaticamente a cada 60s.
+
+Para rodar localmente (sem Docker):
+
+```bash
+cd src && PYTHONPATH=. streamlit run dashboard/app.py
+```
+
+### 6. Acompanhar logs
 
 ```bash
 docker compose logs -f worker
@@ -262,7 +279,8 @@ O diretorio `docs/` contem 14 documentos detalhados cobrindo cada aspecto do sis
 | **Fase 1 — MVP** | Pipeline end-to-end com TikTok, Account Health Gate, HeyGen | Completo |
 | **Fase 2 — Automacao** | Multi-plataforma (IG/YT), compliance LLM, A/B testing, reaproveitamento de vencedores | Completo |
 | **Fase 3 — Escala** | YouTube Shorts, feedback loops, CloudWatch alarmes, runbooks, otimizacao S3 | Completo |
-| **Futuro** | Dashboard web (Grafana/Streamlit), outros idiomas, multiplos avatares | Backlog |
+| **Fase 4 — Dashboard** | Dashboard Streamlit com 6 paginas (overview, pipeline, performance, products, financeiro, health) | Completo |
+| **Futuro** | Outros idiomas, multiplos avatares, Grafana avancado | Backlog |
 
 ---
 

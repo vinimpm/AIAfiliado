@@ -124,6 +124,40 @@ resource "aws_security_group" "ecs" {
   tags = { Name = "${var.project_name}-sg-ecs" }
 }
 
+resource "aws_security_group" "alb" {
+  name        = "${var.project_name}-sg-alb"
+  description = "ALB - inbound HTTP from internet"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTP from internet"
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound"
+  }
+
+  tags = { Name = "${var.project_name}-sg-alb" }
+}
+
+resource "aws_security_group_rule" "ecs_ingress_from_alb" {
+  type                     = "ingress"
+  from_port                = 8501
+  to_port                  = 8501
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.ecs.id
+  source_security_group_id = aws_security_group.alb.id
+  description              = "Streamlit from ALB"
+}
+
 resource "aws_security_group" "rds" {
   name        = "${var.project_name}-sg-rds"
   description = "RDS - inbound from ECS only"

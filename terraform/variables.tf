@@ -105,6 +105,18 @@ variable "beat_memory" {
   default     = 512
 }
 
+variable "dashboard_cpu" {
+  description = "Dashboard task CPU units"
+  type        = number
+  default     = 256
+}
+
+variable "dashboard_memory" {
+  description = "Dashboard task memory in MB"
+  type        = number
+  default     = 512
+}
+
 # --- Monitoring ---
 variable "alert_email" {
   description = "Email address for CloudWatch alarm notifications"

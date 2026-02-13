@@ -37,3 +37,8 @@ output "sns_topic_arn" {
   description = "SNS alerts topic ARN"
   value       = aws_sns_topic.alerts.arn
 }
+
+output "dashboard_url" {
+  description = "Dashboard URL (ALB)"
+  value       = "http://${aws_lb.dashboard.dns_name}"
+}

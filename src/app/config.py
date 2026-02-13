@@ -106,12 +106,24 @@ class Settings(BaseSettings):
     PRICE_RANGE_DIGITAL_MIN: float = 30.0
     PRICE_RANGE_DIGITAL_MAX: float = 297.0
     ALLOWED_CATEGORIES: list[str] = [
-        "beauty", "skincare", "fashion", "accessories",
-        "home", "kitchen", "tech_accessories", "fitness",
-        "health", "education", "pet",
+        "beauty",
+        "skincare",
+        "fashion",
+        "accessories",
+        "home",
+        "kitchen",
+        "tech_accessories",
+        "fitness",
+        "health",
+        "education",
+        "pet",
     ]
     PLATFORM_PRIORITY: list[str] = [
-        "tiktok_shop", "amazon", "shopee", "hotmart", "monetizze",
+        "tiktok_shop",
+        "amazon",
+        "shopee",
+        "hotmart",
+        "monetizze",
     ]
 
     # --- Schedule ---

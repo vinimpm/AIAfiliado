@@ -190,9 +190,7 @@ def generate_video(self, script_id: int) -> dict:
 
         heygen_job_id = heygen_response.get("data", {}).get("video_id", "")
         if not heygen_job_id:
-            raise RuntimeError(
-                f"HeyGen response missing video_id: {heygen_response}"
-            )
+            raise RuntimeError(f"HeyGen response missing video_id: {heygen_response}")
 
         logger.info(
             "generate_video.submitted",
@@ -204,9 +202,7 @@ def generate_video(self, script_id: int) -> dict:
         # Step 6: Update record -> 'generating'
         # ------------------------------------------------------------------
         with get_session_cm() as session:
-            video = session.execute(
-                select(Video).where(Video.id == video_id)
-            ).scalar_one()
+            video = session.execute(select(Video).where(Video.id == video_id)).scalar_one()
             video.status = "generating"
             video.heygen_job_id = heygen_job_id
 
@@ -229,17 +225,14 @@ def generate_video(self, script_id: int) -> dict:
         if heygen_status != "completed":
             error_msg = status_result.get("data", {}).get("error", "Unknown error")
             raise RuntimeError(
-                f"HeyGen video generation failed: status={heygen_status}, "
-                f"error={error_msg}"
+                f"HeyGen video generation failed: status={heygen_status}, error={error_msg}"
             )
 
         video_url = status_result.get("data", {}).get("video_url", "")
         duration_seconds = status_result.get("data", {}).get("duration", 0.0)
 
         if not video_url:
-            raise RuntimeError(
-                f"HeyGen completed but no video_url in response: {status_result}"
-            )
+            raise RuntimeError(f"HeyGen completed but no video_url in response: {status_result}")
 
         logger.info(
             "generate_video.heygen_completed",
@@ -272,9 +265,7 @@ def generate_video(self, script_id: int) -> dict:
         # Step 10: Update record -> 'ready'
         # ------------------------------------------------------------------
         with get_session_cm() as session:
-            video = session.execute(
-                select(Video).where(Video.id == video_id)
-            ).scalar_one()
+            video = session.execute(select(Video).where(Video.id == video_id)).scalar_one()
             video.status = "ready"
             video.s3_url = s3_url
             video.duration = round(float(duration_seconds), 2)
@@ -453,10 +444,7 @@ def _upload_to_s3(video_url: str, video_id: int) -> str:
 
     # Build S3 key: {year}/{month}/{day}/video_{id}.mp4
     today = date.today()
-    s3_key = (
-        f"{today.year}/{today.month:02d}/{today.day:02d}/"
-        f"video_{video_id}.mp4"
-    )
+    s3_key = f"{today.year}/{today.month:02d}/{today.day:02d}/video_{video_id}.mp4"
 
     # Upload to S3
     s3_client = boto3.client(
@@ -473,10 +461,7 @@ def _upload_to_s3(video_url: str, video_id: int) -> str:
         ContentType="video/mp4",
     )
 
-    s3_url = (
-        f"https://{settings.S3_BUCKET_NAME}.s3.{settings.AWS_REGION}"
-        f".amazonaws.com/{s3_key}"
-    )
+    s3_url = f"https://{settings.S3_BUCKET_NAME}.s3.{settings.AWS_REGION}.amazonaws.com/{s3_key}"
 
     logger.info(
         "_upload_to_s3.done",
@@ -513,9 +498,7 @@ def _check_daily_budget(session) -> bool:
     )
 
     total_cost = session.execute(
-        select(func.coalesce(func.sum(Video.cost_usd), 0.0)).where(
-            Video.created_at >= today_start
-        )
+        select(func.coalesce(func.sum(Video.cost_usd), 0.0)).where(Video.created_at >= today_start)
     ).scalar_one()
 
     total_cost = float(total_cost)

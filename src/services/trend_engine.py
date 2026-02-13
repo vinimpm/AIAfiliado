@@ -65,10 +65,7 @@ _USER_AGENTS: list[str] = [
         "AppleWebKit/537.36 (KHTML, like Gecko) "
         "Chrome/124.0.0.0 Safari/537.36"
     ),
-    (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:126.0) "
-        "Gecko/20100101 Firefox/126.0"
-    ),
+    ("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:126.0) Gecko/20100101 Firefox/126.0"),
     (
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -136,9 +133,7 @@ def _fetch_google_trends_raw() -> list[dict]:
                         first_half = series[: len(series) // 2].mean()
                         second_half = series[len(series) // 2 :].mean()
                         if first_half > 0:
-                            growth_rate = round(
-                                ((second_half - first_half) / first_half) * 100, 2
-                            )
+                            growth_rate = round(((second_half - first_half) / first_half) * 100, 2)
                         elif second_half > 0:
                             growth_rate = 100.0
 
@@ -224,10 +219,7 @@ def _collect_tiktok_cc() -> list[dict]:
     Scrape TikTok Creative Center popular hashtags page for Brazil.
     Returns an empty list if scraping fails (fail gracefully).
     """
-    url = (
-        "https://ads.tiktok.com/business/creativecenter/"
-        "inspiration/popular/hashtag/"
-    )
+    url = "https://ads.tiktok.com/business/creativecenter/inspiration/popular/hashtag/"
     params = {
         "period": "7",
         "countryCode": "BR",
@@ -363,9 +355,7 @@ def _parse_tiktok_card(card) -> dict | None:
             growth_7d = float(growth_match.group(1))
 
     # Try to extract category
-    cat_el = card.select_one(
-        "span[class*='category'], span[class*='industry'], div[class*='tag']"
-    )
+    cat_el = card.select_one("span[class*='category'], span[class*='industry'], div[class*='tag']")
     if cat_el:
         category = cat_el.get_text(strip=True).lower()
 
@@ -457,10 +447,7 @@ def _calc_trend_score(trend: dict) -> float:
     saturacao_inv = _score_saturacao_inv(trend.get("video_count"))
 
     score = (
-        crescimento * 0.40
-        + repetibilidade * 0.20
-        + comprabilidade * 0.20
-        + saturacao_inv * 0.20
+        crescimento * 0.40 + repetibilidade * 0.20 + comprabilidade * 0.20 + saturacao_inv * 0.20
     )
 
     return round(min(max(score, 0.0), 100.0), 2)
@@ -578,9 +565,7 @@ def _get_existing_trend_names_this_week(session) -> set[str]:
     today = datetime.now(UTC).date()
     # ISO week starts on Monday
     week_start = today - timedelta(days=today.weekday())
-    week_start_dt = datetime(
-        week_start.year, week_start.month, week_start.day, tzinfo=UTC
-    )
+    week_start_dt = datetime(week_start.year, week_start.month, week_start.day, tzinfo=UTC)
 
     stmt = (
         select(Trend.name)
@@ -679,9 +664,7 @@ def collect_trends(self, run_id: int) -> list[dict]:
     for trend in raw_trends:
         score = _calc_trend_score(trend)
         trend["score"] = score
-        trend["window_days"] = _estimate_window_days(
-            trend.get("growth_rate") or 0.0
-        )
+        trend["window_days"] = _estimate_window_days(trend.get("growth_rate") or 0.0)
         scored_trends.append(trend)
 
     logger.info(
@@ -787,9 +770,7 @@ def collect_trends(self, run_id: int) -> list[dict]:
                 "category": trend_obj.category,
                 "platform": trend_obj.platform,
                 "status": trend_obj.status,
-                "expires_at": trend_obj.expires_at.isoformat()
-                if trend_obj.expires_at
-                else None,
+                "expires_at": trend_obj.expires_at.isoformat() if trend_obj.expires_at else None,
             }
             saved_trends.append(saved_dict)
 

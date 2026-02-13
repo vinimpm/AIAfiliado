@@ -46,6 +46,7 @@ _HTTP_TIMEOUT = httpx.Timeout(connect=10.0, read=30.0, write=10.0, pool=5.0)
 # 1. collect_all_metrics (Celery periodic task)
 # ===========================================================================
 
+
 @celery.task(
     name="services.analytics_service.collect_all_metrics",
     bind=True,
@@ -155,6 +156,7 @@ def collect_all_metrics(self) -> dict:
 # 2. collect_metrics (Celery task)
 # ===========================================================================
 
+
 @celery.task(
     name="services.analytics_service.collect_metrics",
     bind=True,
@@ -222,9 +224,7 @@ def collect_metrics(self, publication_id: int) -> dict:
             }
             if product_id is not None:
                 try:
-                    affiliate_metrics = _collect_affiliate_metrics(
-                        product_id, session
-                    )
+                    affiliate_metrics = _collect_affiliate_metrics(product_id, session)
                 except Exception as aff_exc:
                     logger.error(
                         "collect_metrics.affiliate_error",
@@ -256,16 +256,12 @@ def collect_metrics(self, publication_id: int) -> dict:
                 "comments": metric.comments,
                 "shares": metric.shares,
                 "retention_3s": (
-                    float(metric.retention_3s)
-                    if metric.retention_3s is not None
-                    else None
+                    float(metric.retention_3s) if metric.retention_3s is not None else None
                 ),
                 "clicks": metric.clicks,
                 "sales": metric.sales,
                 "revenue": float(metric.revenue),
-                "collected_at": metric.collected_at.isoformat()
-                if metric.collected_at
-                else None,
+                "collected_at": metric.collected_at.isoformat() if metric.collected_at else None,
             }
 
             logger.info(
@@ -290,9 +286,8 @@ def collect_metrics(self, publication_id: int) -> dict:
 # 3. Platform metrics collection (stubs with structure)
 # ===========================================================================
 
-def _collect_platform_metrics(
-    platform: str, external_id: str | None
-) -> dict[str, Any]:
+
+def _collect_platform_metrics(platform: str, external_id: str | None) -> dict[str, Any]:
     """Route to the correct platform metrics collector."""
     if not external_id:
         logger.warning(
@@ -482,6 +477,7 @@ def _collect_youtube_metrics(external_id: str) -> dict[str, Any]:
 # 4. Affiliate metrics collection
 # ===========================================================================
 
+
 def _collect_affiliate_metrics(product_id: int, session) -> dict[str, Any]:
     """Collect affiliate metrics (clicks, sales, revenue) for a product.
 
@@ -491,9 +487,7 @@ def _collect_affiliate_metrics(product_id: int, session) -> dict[str, Any]:
     Returns:
         dict with keys: clicks, sales, revenue.
     """
-    product = session.execute(
-        select(Product).where(Product.id == product_id)
-    ).scalar_one_or_none()
+    product = session.execute(select(Product).where(Product.id == product_id)).scalar_one_or_none()
 
     if product is None:
         logger.warning(
@@ -613,6 +607,7 @@ def _collect_shopee_affiliate(product: Product) -> dict[str, Any]:
 # 5. evaluate_winners
 # ===========================================================================
 
+
 def evaluate_winners() -> list[int]:
     """Evaluate active products and identify winners.
 
@@ -708,12 +703,8 @@ def evaluate_winners() -> list[int]:
                 # This product is a winner -- update aggregates
                 agg = session.execute(
                     select(
-                        func.coalesce(func.sum(Metric.sales), 0).label(
-                            "total_sales"
-                        ),
-                        func.coalesce(func.sum(Metric.revenue), 0).label(
-                            "total_revenue"
-                        ),
+                        func.coalesce(func.sum(Metric.sales), 0).label("total_sales"),
+                        func.coalesce(func.sum(Metric.revenue), 0).label("total_revenue"),
                     ).where(Metric.publication_id.in_(pub_ids))
                 ).one()
 
@@ -747,6 +738,7 @@ def evaluate_winners() -> list[int]:
 # ===========================================================================
 # 6. should_pause
 # ===========================================================================
+
 
 def should_pause(publication_id: int) -> bool:
     """Determine whether a publication should be paused (deprioritised).
@@ -848,6 +840,7 @@ def should_pause(publication_id: int) -> bool:
 # 7. determine_ab_winner
 # ===========================================================================
 
+
 def determine_ab_winner(
     product_id: int,
     hours_threshold: int = 48,
@@ -872,9 +865,7 @@ def determine_ab_winner(
         hours_threshold=hours_threshold,
     )
 
-    min_posted_at = datetime.now(UTC) - timedelta(
-        hours=hours_threshold
-    )
+    min_posted_at = datetime.now(UTC) - timedelta(hours=hours_threshold)
 
     try:
         with get_session_cm() as session:
@@ -982,6 +973,7 @@ def determine_ab_winner(
 # 8. should_retire
 # ===========================================================================
 
+
 def should_retire(product_id: int) -> bool:
     """Check whether a product should be retired due to inactivity.
 
@@ -1070,6 +1062,7 @@ def should_retire(product_id: int) -> bool:
 # 9. retire_stale_products
 # ===========================================================================
 
+
 def retire_stale_products() -> int:
     """Find and retire all products that match the ``should_retire`` criteria.
 
@@ -1089,11 +1082,7 @@ def retire_stale_products() -> int:
         with get_session_cm() as session:
             # Get all active products
             active_products = (
-                session.execute(
-                    select(Product).where(Product.is_active.is_(True))
-                )
-                .scalars()
-                .all()
+                session.execute(select(Product).where(Product.is_active.is_(True))).scalars().all()
             )
 
             for product in active_products:
@@ -1155,6 +1144,7 @@ def retire_stale_products() -> int:
 # 10. update_trend_score_with_feedback
 # ===========================================================================
 
+
 def update_trend_score_with_feedback(trend_id: int) -> None:
     """Update a trend's score based on real performance feedback.
 
@@ -1174,9 +1164,7 @@ def update_trend_score_with_feedback(trend_id: int) -> None:
 
     try:
         with get_session_cm() as session:
-            trend = session.execute(
-                select(Trend).where(Trend.id == trend_id)
-            ).scalar_one_or_none()
+            trend = session.execute(select(Trend).where(Trend.id == trend_id)).scalar_one_or_none()
 
             if trend is None:
                 logger.warning(
@@ -1281,6 +1269,7 @@ def update_trend_score_with_feedback(trend_id: int) -> None:
 # ===========================================================================
 # 11. update_product_score_with_feedback
 # ===========================================================================
+
 
 def update_product_score_with_feedback(product_id: int) -> None:
     """Update a product's score based on its conversion rate.

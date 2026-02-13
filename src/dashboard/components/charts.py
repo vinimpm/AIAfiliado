@@ -38,8 +38,14 @@ def bar_chart(
 ) -> go.Figure:
     """Bar chart."""
     fig = px.bar(
-        df, x=x, y=y, title=title, color=color,
-        labels=labels, template=_TEMPLATE, barmode=barmode,
+        df,
+        x=x,
+        y=y,
+        title=title,
+        color=color,
+        labels=labels,
+        template=_TEMPLATE,
+        barmode=barmode,
     )
     return fig
 
@@ -54,8 +60,14 @@ def stacked_bar_chart(
 ) -> go.Figure:
     """Stacked bar chart."""
     fig = px.bar(
-        df, x=x, y=y, color=color, title=title,
-        labels=labels, template=_TEMPLATE, barmode="stack",
+        df,
+        x=x,
+        y=y,
+        color=color,
+        title=title,
+        labels=labels,
+        template=_TEMPLATE,
+        barmode="stack",
     )
     return fig
 
@@ -80,8 +92,12 @@ def histogram(
 ) -> go.Figure:
     """Histogram."""
     fig = px.histogram(
-        df, x=x, title=title, nbins=nbins,
-        labels=labels, template=_TEMPLATE,
+        df,
+        x=x,
+        title=title,
+        nbins=nbins,
+        labels=labels,
+        template=_TEMPLATE,
     )
     return fig
 
@@ -104,20 +120,22 @@ def gauge_chart(
     if thresholds is None:
         thresholds = {"green": 40, "yellow": 70, "red": 100}
 
-    fig = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=value,
-        title={"text": title},
-        gauge={
-            "axis": {"range": [0, max_val]},
-            "bar": {"color": "white"},
-            "steps": [
-                {"range": [0, thresholds["green"]], "color": "#2ecc71"},
-                {"range": [thresholds["green"], thresholds["yellow"]], "color": "#f39c12"},
-                {"range": [thresholds["yellow"], thresholds["red"]], "color": "#e74c3c"},
-            ],
-        },
-    ))
+    fig = go.Figure(
+        go.Indicator(
+            mode="gauge+number",
+            value=value,
+            title={"text": title},
+            gauge={
+                "axis": {"range": [0, max_val]},
+                "bar": {"color": "white"},
+                "steps": [
+                    {"range": [0, thresholds["green"]], "color": "#2ecc71"},
+                    {"range": [thresholds["green"], thresholds["yellow"]], "color": "#f39c12"},
+                    {"range": [thresholds["yellow"], thresholds["red"]], "color": "#e74c3c"},
+                ],
+            },
+        )
+    )
     fig.update_layout(template=_TEMPLATE, height=300)
     return fig
 
@@ -128,10 +146,12 @@ def funnel_chart(
     title: str = "",
 ) -> go.Figure:
     """Funnel chart for conversion stages."""
-    fig = go.Figure(go.Funnel(
-        y=stages,
-        x=values,
-        textinfo="value+percent initial",
-    ))
+    fig = go.Figure(
+        go.Funnel(
+            y=stages,
+            x=values,
+            textinfo="value+percent initial",
+        )
+    )
     fig.update_layout(title=title, template=_TEMPLATE)
     return fig

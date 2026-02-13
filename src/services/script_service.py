@@ -104,6 +104,7 @@ VARIANT_MODIFIERS: dict[str, str] = {
 # 1. generate_scripts -- main Celery task
 # ===========================================================================
 
+
 @celery.task(
     name="services.script_service.generate_scripts",
     bind=True,
@@ -160,9 +161,7 @@ def generate_scripts(
                 )
                 return []
 
-            trend = session.execute(
-                select(Trend).where(Trend.id == trend_id)
-            ).scalar_one_or_none()
+            trend = session.execute(select(Trend).where(Trend.id == trend_id)).scalar_one_or_none()
 
             if trend is None:
                 logger.error(
@@ -247,10 +246,7 @@ def generate_scripts(
 
                     # Check similarity against recent scripts
                     new_text = f"{hook} {body} {cta}"
-                    recent_texts = [
-                        f"{s['hook']} {s['body']} {s['cta']}"
-                        for s in recent_scripts
-                    ]
+                    recent_texts = [f"{s['hook']} {s['body']} {s['cta']}" for s in recent_scripts]
 
                     if _check_similarity(
                         new_text,
@@ -338,9 +334,7 @@ def generate_scripts(
                     "hash": script_obj.hash,
                     "variant": variant_key,
                     "status": script_obj.status,
-                    "estimated_duration_seconds": script_data[
-                        "estimated_duration_seconds"
-                    ],
+                    "estimated_duration_seconds": script_data["estimated_duration_seconds"],
                 }
                 approved_scripts.append(script_dict)
 
@@ -382,6 +376,7 @@ def generate_scripts(
 # 5. _generate_hash
 # ===========================================================================
 
+
 def _generate_hash(hook: str, body: str, cta: str) -> str:
     """Generate a SHA-256 hash for script deduplication.
 
@@ -419,6 +414,7 @@ def _generate_hash(hook: str, body: str, cta: str) -> str:
 # ===========================================================================
 # 6. _check_similarity
 # ===========================================================================
+
 
 def _check_similarity(
     new_text: str,
@@ -480,6 +476,7 @@ def _check_similarity(
 # ===========================================================================
 # 7. _call_llm
 # ===========================================================================
+
 
 def _call_llm(prompt: str) -> dict | None:
     """Call LLM API (OpenAI or Anthropic) to generate a script.
@@ -610,6 +607,7 @@ def _parse_json_response(text: str) -> dict | None:
 # Helper: load recent scripts for similarity comparison
 # ===========================================================================
 
+
 def _load_recent_scripts(session, platform: str) -> list[dict]:
     """Load recent scripts from the database for similarity comparison.
 
@@ -641,10 +639,7 @@ def _load_recent_scripts(session, platform: str) -> list[dict]:
         )
         rows = session.execute(stmt).all()
 
-        return [
-            {"hook": row.hook, "body": row.body, "cta": row.cta}
-            for row in rows
-        ]
+        return [{"hook": row.hook, "body": row.body, "cta": row.cta} for row in rows]
     except Exception:
         logger.exception("_load_recent_scripts.error")
         return []

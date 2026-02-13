@@ -38,6 +38,7 @@ st.sidebar.caption(f"Cache TTL: {dash_settings.CACHE_TTL_SECONDS}s")
 st_autorefresh = None
 try:
     from streamlit_autorefresh import st_autorefresh  # type: ignore[no-redef]
+
     st_autorefresh(
         interval=dash_settings.REFRESH_INTERVAL_SECONDS * 1000,
         key="auto_refresh",

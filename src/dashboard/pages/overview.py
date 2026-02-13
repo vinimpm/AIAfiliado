@@ -22,14 +22,17 @@ def render(session: Session):
 
     # --- KPIs ---
     kpis = queries.kpi_totals(session, days=days)
-    kpi_row([
-        {"label": "Videos Gerados", "value": kpis["videos"]},
-        {"label": "Publicacoes", "value": kpis["publications"]},
-        {"label": "Views", "value": kpis["views"]},
-        {"label": "Vendas", "value": kpis["sales"]},
-        {"label": "Receita", "value": kpis["revenue"], "prefix": "R$ "},
-        {"label": "Retencao 3s", "value": kpis["avg_retention"] * 100, "suffix": "%"},
-    ], columns=6)
+    kpi_row(
+        [
+            {"label": "Videos Gerados", "value": kpis["videos"]},
+            {"label": "Publicacoes", "value": kpis["publications"]},
+            {"label": "Views", "value": kpis["views"]},
+            {"label": "Vendas", "value": kpis["sales"]},
+            {"label": "Receita", "value": kpis["revenue"], "prefix": "R$ "},
+            {"label": "Retencao 3s", "value": kpis["avg_retention"] * 100, "suffix": "%"},
+        ],
+        columns=6,
+    )
 
     st.divider()
 
@@ -42,14 +45,15 @@ def render(session: Session):
         if run:
             color = _risk_color(run["risk_level"])
             st.markdown(
-                f"**Risk Level:** :{color}[{run['risk_level']}] "
-                f"(score: {run['risk_score']:.0f})"
+                f"**Risk Level:** :{color}[{run['risk_level']}] (score: {run['risk_score']:.0f})"
             )
             st.markdown(f"**Posts Allowed:** {run['posts_allowed']}")
             st.markdown(f"**Cooldown:** {run['cooldown_minutes']} min")
             status_colors = {
-                "running": "blue", "completed": "green",
-                "failed": "red", "paused": "orange",
+                "running": "blue",
+                "completed": "green",
+                "failed": "red",
+                "paused": "orange",
             }
             sc = status_colors.get(run["status"], "gray")
             st.markdown(f"**Status:** :{sc}[{run['status'].upper()}]")
@@ -63,8 +67,12 @@ def render(session: Session):
             # Count by status per day
             counts = df_status.groupby(["run_date", "status"]).size().reset_index(name="count")
             fig = stacked_bar_chart(
-                counts, x="run_date", y="count", color="status",
-                title="", labels={"run_date": "Data", "count": "Runs"},
+                counts,
+                x="run_date",
+                y="count",
+                color="status",
+                title="",
+                labels={"run_date": "Data", "count": "Runs"},
             )
             st.plotly_chart(fig, use_container_width=True)
         else:

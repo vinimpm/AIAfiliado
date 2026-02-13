@@ -71,14 +71,16 @@ celery.conf.beat_schedule = {
     },
 }
 
-celery.autodiscover_tasks([
-    "services.account_health",
-    "services.trend_engine",
-    "services.product_service",
-    "services.script_service",
-    "services.compliance",
-    "services.video_service",
-    "services.publish_service",
-    "services.analytics_service",
-    "services.orchestrator",
-])
+celery.autodiscover_tasks(
+    [
+        "services.account_health",
+        "services.trend_engine",
+        "services.product_service",
+        "services.script_service",
+        "services.compliance",
+        "services.video_service",
+        "services.publish_service",
+        "services.analytics_service",
+        "services.orchestrator",
+    ]
+)

@@ -228,7 +228,14 @@ def seeded_session(session):
 class TestKpiTotals:
     def test_returns_all_keys(self, seeded_session):
         result = queries.kpi_totals(seeded_session, days=7)
-        assert set(result.keys()) == {"videos", "publications", "views", "sales", "revenue", "avg_retention"}
+        assert set(result.keys()) == {
+            "videos",
+            "publications",
+            "views",
+            "sales",
+            "revenue",
+            "avg_retention",
+        }
 
     def test_values_correct(self, seeded_session):
         result = queries.kpi_totals(seeded_session, days=7)

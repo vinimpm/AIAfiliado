@@ -16,7 +16,10 @@ def engine_factory(url: str | None = None):
     if settings.DATABASE_SSL:
         connect_args["sslmode"] = "require"
     _engine = create_engine(
-        url, pool_pre_ping=True, pool_size=5, max_overflow=10,
+        url,
+        pool_pre_ping=True,
+        pool_size=5,
+        max_overflow=10,
         connect_args=connect_args,
     )
     _SessionLocal = sessionmaker(bind=_engine, expire_on_commit=False)

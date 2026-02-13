@@ -23,9 +23,7 @@ class Trend(Base):
             "source IN ('tiktok_cc', 'tiktok_shop', 'google_trends')",
             name="chk_trends_source",
         ),
-        CheckConstraint(
-            "status IN ('active', 'expired', 'discarded')", name="chk_trends_status"
-        ),
+        CheckConstraint("status IN ('active', 'expired', 'discarded')", name="chk_trends_status"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

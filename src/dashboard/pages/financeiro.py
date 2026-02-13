@@ -19,12 +19,15 @@ def render(session: Session):
 
     # --- KPIs ---
     fin = queries.financial_kpis(session, days=days)
-    kpi_row([
-        {"label": "Custo Total (USD)", "value": fin["cost"], "prefix": "$ "},
-        {"label": "Receita Total (R$)", "value": fin["revenue"], "prefix": "R$ "},
-        {"label": "Lucro (R$)", "value": fin["profit"], "prefix": "R$ "},
-        {"label": "ROI", "value": fin["roi"], "suffix": "%"},
-    ], columns=4)
+    kpi_row(
+        [
+            {"label": "Custo Total (USD)", "value": fin["cost"], "prefix": "$ "},
+            {"label": "Receita Total (R$)", "value": fin["revenue"], "prefix": "R$ "},
+            {"label": "Lucro (R$)", "value": fin["profit"], "prefix": "R$ "},
+            {"label": "ROI", "value": fin["roi"], "suffix": "%"},
+        ],
+        columns=4,
+    )
 
     st.divider()
 
@@ -48,7 +51,9 @@ def render(session: Session):
         df_cr = queries.daily_cost_revenue(session, days=days)
         if not df_cr.empty:
             fig = line_chart(
-                df_cr, x="day", y=["cost", "revenue"],
+                df_cr,
+                x="day",
+                y=["cost", "revenue"],
                 labels={"day": "Data", "value": "Valor", "variable": "Tipo"},
             )
             st.plotly_chart(fig, use_container_width=True)
@@ -60,7 +65,9 @@ def render(session: Session):
     df_pnl = queries.cumulative_pnl(session, days=days)
     if not df_pnl.empty:
         fig = line_chart(
-            df_pnl, x="day", y="pnl",
+            df_pnl,
+            x="day",
+            y="pnl",
             labels={"day": "Data", "pnl": "P&L Acumulado (R$)"},
         )
         fig.add_hline(y=0, line_dash="dash", line_color="gray")

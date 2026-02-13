@@ -20,7 +20,9 @@ def render(session: Session):
     df_eng = queries.engagement_over_time(session, days=days)
     if not df_eng.empty:
         fig = line_chart(
-            df_eng, x="day", y=["views", "likes", "shares"],
+            df_eng,
+            x="day",
+            y=["views", "likes", "shares"],
             labels={"day": "Data", "value": "Total", "variable": "Metrica"},
         )
         st.plotly_chart(fig, use_container_width=True)
@@ -35,7 +37,8 @@ def render(session: Session):
         df_ret = queries.retention_distribution(session, days=days)
         if not df_ret.empty:
             fig = histogram(
-                df_ret, x="retention_3s",
+                df_ret,
+                x="retention_3s",
                 labels={"retention_3s": "Retencao 3s"},
                 nbins=20,
             )
@@ -53,9 +56,7 @@ def render(session: Session):
                 values=[funnel["views"], funnel["clicks"], funnel["sales"]],
             )
             st.plotly_chart(fig, use_container_width=True)
-            st.markdown(
-                f"**CTR:** {funnel['ctr']:.2%} | **CVR:** {funnel['cvr']:.2%}"
-            )
+            st.markdown(f"**CTR:** {funnel['ctr']:.2%} | **CVR:** {funnel['cvr']:.2%}")
         else:
             st.info("Sem dados de conversao.")
 

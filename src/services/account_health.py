@@ -242,9 +242,7 @@ def _calc_content_similarity(session: Session) -> float:
     """
     try:
         stmt = (
-            select(Script.hook, Script.body, Script.cta)
-            .order_by(Script.created_at.desc())
-            .limit(5)
+            select(Script.hook, Script.body, Script.cta).order_by(Script.created_at.desc()).limit(5)
         )
         rows = session.execute(stmt).all()
         if len(rows) < 2:
@@ -484,12 +482,9 @@ def _days_since_last_removal(session: Session) -> float:
     removal component score to zero.
     """
     try:
-        stmt = (
-            select(func.max(Publication.posted_at))
-            .where(
-                Publication.status == "FAILED",
-                Publication.posted_at.isnot(None),
-            )
+        stmt = select(func.max(Publication.posted_at)).where(
+            Publication.status == "FAILED",
+            Publication.posted_at.isnot(None),
         )
         last_removal_at: datetime | None = session.execute(stmt).scalar()
         if last_removal_at is None:

@@ -142,6 +142,7 @@ Responda com o seguinte JSON:
 # 4. check_blocklist
 # ===========================================================================
 
+
 def check_blocklist(text: str) -> dict[str, Any]:
     """Check text against hard and soft blocklists.
 
@@ -194,6 +195,7 @@ def check_blocklist(text: str) -> dict[str, Any]:
 # ===========================================================================
 # 5. check_compliance_llm
 # ===========================================================================
+
 
 def check_compliance_llm(
     hook: str,
@@ -309,8 +311,7 @@ def _call_anthropic_compliance(prompt: str) -> str:
         max_tokens=settings.LLM_MAX_TOKENS,
         temperature=0.2,
         system=(
-            "Voce e um revisor de compliance. "
-            "Responda APENAS com JSON valido, sem texto adicional."
+            "Voce e um revisor de compliance. Responda APENAS com JSON valido, sem texto adicional."
         ),
         messages=[{"role": "user", "content": prompt}],
     )
@@ -352,6 +353,7 @@ def _parse_llm_json(text: str) -> dict | None:
 # ===========================================================================
 # 6. check_cta_compatibility
 # ===========================================================================
+
 
 def check_cta_compatibility(cta: str, platform: str) -> bool:
     """Check if a CTA is compatible with the given platform rules.
@@ -416,6 +418,7 @@ def check_cta_compatibility(cta: str, platform: str) -> bool:
 # 7. check_duration
 # ===========================================================================
 
+
 def check_duration(hook: str, body: str, cta: str) -> bool:
     """Estimate script duration from word count and check if within range.
 
@@ -455,6 +458,7 @@ def check_duration(hook: str, body: str, cta: str) -> bool:
 # ===========================================================================
 # 8. validate_script -- full validation pipeline
 # ===========================================================================
+
 
 @celery.task(name="services.compliance.validate_script", bind=True, max_retries=2)
 def validate_script(
@@ -507,9 +511,7 @@ def validate_script(
     blocklist_result = check_blocklist(full_text)
 
     if not blocklist_result["passed"]:
-        reason = (
-            f"Frases proibidas encontradas: {', '.join(blocklist_result['hard_matches'])}"
-        )
+        reason = f"Frases proibidas encontradas: {', '.join(blocklist_result['hard_matches'])}"
         logger.warning(
             "validate_script.blocklist_rejected",
             hard_matches=blocklist_result["hard_matches"],
@@ -532,9 +534,7 @@ def validate_script(
     # ------------------------------------------------------------------
     cta_ok = check_cta_compatibility(cta, platform)
     if not cta_ok:
-        violations.append(
-            f"CTA incompativel com a plataforma {platform}: '{cta}'"
-        )
+        violations.append(f"CTA incompativel com a plataforma {platform}: '{cta}'")
         logger.warning(
             "validate_script.cta_incompatible",
             platform=platform,
@@ -555,9 +555,7 @@ def validate_script(
         full_script = " ".join(filter(None, [hook, body, cta]))
         word_count = len(full_script.split())
         estimated = round(word_count / 2.5, 1)
-        violations.append(
-            f"Duracao estimada fora do intervalo (20-45s): ~{estimated}s"
-        )
+        violations.append(f"Duracao estimada fora do intervalo (20-45s): ~{estimated}s")
         logger.info(
             "validate_script.duration_warning",
             estimated_seconds=estimated,

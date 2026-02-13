@@ -135,8 +135,7 @@ def schedule_publication(
     platform = platform.lower().strip()
     if platform not in SCHEDULE_WINDOWS:
         raise ValueError(
-            f"Unsupported platform '{platform}'. "
-            f"Supported: {list(SCHEDULE_WINDOWS.keys())}"
+            f"Unsupported platform '{platform}'. Supported: {list(SCHEDULE_WINDOWS.keys())}"
         )
 
     publication_id: int | None = None
@@ -146,18 +145,13 @@ def schedule_publication(
         # Step 1: Load and validate the video
         # ------------------------------------------------------------------
         with get_session_cm() as session:
-            video = session.execute(
-                select(Video).where(Video.id == video_id)
-            ).scalar_one_or_none()
+            video = session.execute(select(Video).where(Video.id == video_id)).scalar_one_or_none()
 
             if video is None:
                 raise ValueError(f"Video {video_id} not found")
 
             if video.status != "ready":
-                raise ValueError(
-                    f"Video {video_id} has status '{video.status}', "
-                    f"expected 'ready'"
-                )
+                raise ValueError(f"Video {video_id} has status '{video.status}', expected 'ready'")
 
             if not video.s3_url:
                 raise ValueError(f"Video {video_id} has no s3_url")
@@ -226,14 +220,10 @@ def schedule_publication(
                     else ""
                 ),
                 "product_title": (
-                    video_script.product.title
-                    if video_script and video_script.product
-                    else ""
+                    video_script.product.title if video_script and video_script.product else ""
                 ),
                 "category": (
-                    video_script.product.category
-                    if video_script and video_script.product
-                    else ""
+                    video_script.product.category if video_script and video_script.product else ""
                 ),
             }
 
@@ -298,9 +288,7 @@ def schedule_publication(
             final_status = publication.status
             final_external_id = publication.external_id
             final_scheduled_at = (
-                publication.scheduled_at.isoformat()
-                if publication.scheduled_at
-                else None
+                publication.scheduled_at.isoformat() if publication.scheduled_at else None
             )
 
         response = {
@@ -336,9 +324,7 @@ def schedule_publication(
             try:
                 with get_session_cm() as session:
                     publication = session.execute(
-                        select(Publication).where(
-                            Publication.id == publication_id
-                        )
+                        select(Publication).where(Publication.id == publication_id)
                     ).scalar_one_or_none()
                     if publication and publication.status != "POSTED":
                         publication.status = "FAILED"
@@ -384,9 +370,9 @@ def _pick_schedule_time(platform: str) -> datetime:
     candidates: list[datetime] = []
     for hour, minute in windows:
         variation_minutes = random.randint(0, 30)
-        candidate = now.replace(
-            hour=hour, minute=minute, second=0, microsecond=0
-        ) + timedelta(minutes=variation_minutes)
+        candidate = now.replace(hour=hour, minute=minute, second=0, microsecond=0) + timedelta(
+            minutes=variation_minutes
+        )
         candidates.append(candidate)
 
     # Filter to times that are still in the future
@@ -518,14 +504,17 @@ def _check_cooldown(platform: str, session) -> bool:
         *date.today().timetuple()[:3],
         tzinfo=UTC,
     )
-    posts_today = session.execute(
-        select(func.count())
-        .select_from(Publication)
-        .where(
-            Publication.status.in_(["POSTED", "UPLOADING", "SCHEDULED"]),
-            Publication.scheduled_at >= today_start,
-        )
-    ).scalar() or 0
+    posts_today = (
+        session.execute(
+            select(func.count())
+            .select_from(Publication)
+            .where(
+                Publication.status.in_(["POSTED", "UPLOADING", "SCHEDULED"]),
+                Publication.scheduled_at >= today_start,
+            )
+        ).scalar()
+        or 0
+    )
 
     if posts_today >= daily_run.posts_allowed:
         logger.warning(
@@ -655,9 +644,7 @@ def _publish_tiktok(publication_id: int, video_info: dict[str, Any]) -> dict:
         }
 
         with httpx.Client(timeout=_HTTP_TIMEOUT) as client:
-            init_response = client.post(
-                init_url, json=init_payload, headers=headers
-            )
+            init_response = client.post(init_url, json=init_payload, headers=headers)
             init_response.raise_for_status()
             init_data = init_response.json()
 
@@ -687,9 +674,7 @@ def _publish_tiktok(publication_id: int, video_info: dict[str, Any]) -> dict:
         }
 
         with httpx.Client(timeout=_HTTP_TIMEOUT) as client:
-            upload_response = client.put(
-                upload_url, content=video_bytes, headers=upload_headers
-            )
+            upload_response = client.put(upload_url, content=video_bytes, headers=upload_headers)
             upload_response.raise_for_status()
 
         logger.info(
@@ -722,9 +707,7 @@ def _publish_tiktok(publication_id: int, video_info: dict[str, Any]) -> dict:
     except httpx.HTTPStatusError as exc:
         status_code = exc.response.status_code
         error_body = exc.response.text[:500]
-        error_msg = (
-            f"TikTok API error: HTTP {status_code} - {error_body}"
-        )
+        error_msg = f"TikTok API error: HTTP {status_code} - {error_body}"
         logger.error(
             "_publish_tiktok.http_error",
             publication_id=publication_id,
@@ -822,10 +805,7 @@ def _poll_tiktok_status(
 
         if status in ("FAILED", "PUBLISH_FAILED"):
             fail_reason = data.get("data", {}).get("fail_reason", "Unknown")
-            raise RuntimeError(
-                f"TikTok publish failed: status={status}, "
-                f"reason={fail_reason}"
-            )
+            raise RuntimeError(f"TikTok publish failed: status={status}, reason={fail_reason}")
 
         logger.debug(
             "_poll_tiktok_status.polling",
@@ -967,9 +947,7 @@ def _publish_instagram(publication_id: int, video_info: dict[str, Any]) -> dict:
     except httpx.HTTPStatusError as exc:
         status_code = exc.response.status_code
         error_body = exc.response.text[:500]
-        error_msg = (
-            f"Instagram API error: HTTP {status_code} - {error_body}"
-        )
+        error_msg = f"Instagram API error: HTTP {status_code} - {error_body}"
         logger.error(
             "_publish_instagram.http_error",
             publication_id=publication_id,
@@ -1062,9 +1040,7 @@ def _poll_instagram_container(creation_id: str, access_token: str) -> None:
             return
 
         if status_code == "ERROR":
-            raise RuntimeError(
-                f"Instagram container {creation_id} failed with ERROR status"
-            )
+            raise RuntimeError(f"Instagram container {creation_id} failed with ERROR status")
 
         logger.debug(
             "_poll_instagram_container.polling",
@@ -1174,8 +1150,7 @@ def _publish_youtube(publication_id: int, video_info: dict[str, Any]) -> dict:
         # Step 3: Initiate resumable upload
         # ------------------------------------------------------------------
         init_url = (
-            f"{_YOUTUBE_API_BASE}/upload/youtube/v3/videos"
-            "?uploadType=resumable&part=snippet,status"
+            f"{_YOUTUBE_API_BASE}/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status"
         )
 
         init_headers = {
@@ -1186,9 +1161,7 @@ def _publish_youtube(publication_id: int, video_info: dict[str, Any]) -> dict:
         }
 
         with httpx.Client(timeout=_HTTP_TIMEOUT) as client:
-            init_response = client.post(
-                init_url, json=metadata, headers=init_headers
-            )
+            init_response = client.post(init_url, json=metadata, headers=init_headers)
             init_response.raise_for_status()
 
         # The Location header contains the resumable session URI
@@ -1214,10 +1187,10 @@ def _publish_youtube(publication_id: int, video_info: dict[str, Any]) -> dict:
             "Content-Length": str(len(video_bytes)),
         }
 
-        with httpx.Client(timeout=httpx.Timeout(connect=10.0, read=300.0, write=300.0, pool=5.0)) as client:
-            upload_response = client.put(
-                upload_uri, content=video_bytes, headers=upload_headers
-            )
+        with httpx.Client(
+            timeout=httpx.Timeout(connect=10.0, read=300.0, write=300.0, pool=5.0)
+        ) as client:
+            upload_response = client.put(upload_uri, content=video_bytes, headers=upload_headers)
             upload_response.raise_for_status()
             upload_data = upload_response.json()
 
@@ -1237,9 +1210,7 @@ def _publish_youtube(publication_id: int, video_info: dict[str, Any]) -> dict:
     except httpx.HTTPStatusError as exc:
         status_code = exc.response.status_code
         error_body = exc.response.text[:500]
-        error_msg = (
-            f"YouTube API error: HTTP {status_code} - {error_body}"
-        )
+        error_msg = f"YouTube API error: HTTP {status_code} - {error_body}"
         logger.error(
             "_publish_youtube.http_error",
             publication_id=publication_id,

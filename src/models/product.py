@@ -53,7 +53,9 @@ class Product(Base):
     )
 
     # Relationships
-    scripts: Mapped[list["Script"]] = relationship(back_populates="product", cascade="all, delete-orphan")  # noqa: F821
+    scripts: Mapped[list["Script"]] = relationship(
+        back_populates="product", cascade="all, delete-orphan"
+    )  # noqa: F821
 
     def __repr__(self) -> str:
         return f"<Product {self.title[:40]} ({self.source_platform})>"

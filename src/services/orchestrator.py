@@ -42,6 +42,7 @@ logger = get_logger(service="orchestrator")
 # Main Celery task
 # ===========================================================================
 
+
 @celery.task(
     name="services.orchestrator.trigger_daily_pipeline",
     bind=True,
@@ -539,6 +540,7 @@ def trigger_daily_pipeline(self) -> dict:
 # ===========================================================================
 # Helpers
 # ===========================================================================
+
 
 def _update_daily_run_status(run_id: int | None, status: str) -> None:
     """Update the DailyRun record with the given status and finished_at timestamp.

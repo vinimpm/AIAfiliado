@@ -40,7 +40,9 @@ def render(session: Session):
         df_risk = queries.risk_score_trend(session, days=days)
         if not df_risk.empty:
             fig = line_chart(
-                df_risk, x="run_date", y="risk_score",
+                df_risk,
+                x="run_date",
+                y="risk_score",
                 labels={"run_date": "Data", "risk_score": "Risk Score"},
             )
             fig.add_hline(y=70, line_dash="dash", line_color="red", annotation_text="HIGH")
@@ -54,7 +56,9 @@ def render(session: Session):
         df_rate = queries.success_rate_trend(session, days=days)
         if not df_rate.empty:
             fig = line_chart(
-                df_rate, x="run_date", y="success_rate",
+                df_rate,
+                x="run_date",
+                y="success_rate",
                 labels={"run_date": "Data", "success_rate": "Taxa (%)"},
             )
             st.plotly_chart(fig, use_container_width=True)
@@ -65,7 +69,9 @@ def render(session: Session):
     df_dur = queries.run_duration_chart(session, days=days)
     if not df_dur.empty:
         fig = bar_chart(
-            df_dur, x="run_date", y="duration_min",
+            df_dur,
+            x="run_date",
+            y="duration_min",
             labels={"run_date": "Data", "duration_min": "Minutos"},
         )
         st.plotly_chart(fig, use_container_width=True)

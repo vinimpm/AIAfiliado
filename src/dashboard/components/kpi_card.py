@@ -23,7 +23,11 @@ def kpi_card(
         prefix: Text before value (e.g. "R$").
         suffix: Text after value (e.g. "%").
     """
-    display = f"{prefix}{value:,.2f}{suffix}" if isinstance(value, float) else f"{prefix}{value:,}{suffix}"
+    display = (
+        f"{prefix}{value:,.2f}{suffix}"
+        if isinstance(value, float)
+        else f"{prefix}{value:,}{suffix}"
+    )
     st.metric(label=label, value=display, delta=delta, delta_color=delta_color)
 
 

@@ -63,7 +63,9 @@ def render(session: Session):
     df_hist = queries.health_history(session, days=days)
     if not df_hist.empty:
         fig = line_chart(
-            df_hist, x="run_date", y="risk_score",
+            df_hist,
+            x="run_date",
+            y="risk_score",
             labels={"run_date": "Data", "risk_score": "Risk Score"},
         )
         fig.add_hline(y=70, line_dash="dash", line_color="red", annotation_text="HIGH")
@@ -93,11 +95,16 @@ def render(session: Session):
         df_posts = queries.posts_allowed_vs_used(session, days=days)
         if not df_posts.empty:
             df_melted = df_posts.melt(
-                id_vars="run_date", value_vars=["allowed", "used"],
-                var_name="tipo", value_name="count",
+                id_vars="run_date",
+                value_vars=["allowed", "used"],
+                var_name="tipo",
+                value_name="count",
             )
             fig = bar_chart(
-                df_melted, x="run_date", y="count", color="tipo",
+                df_melted,
+                x="run_date",
+                y="count",
+                color="tipo",
                 labels={"run_date": "Data", "count": "Posts", "tipo": "Tipo"},
                 barmode="group",
             )
@@ -111,7 +118,9 @@ def render(session: Session):
         df_cool = queries.cooldown_trend(session, days=days)
         if not df_cool.empty:
             fig = line_chart(
-                df_cool, x="run_date", y="cooldown_minutes",
+                df_cool,
+                x="run_date",
+                y="cooldown_minutes",
                 labels={"run_date": "Data", "cooldown_minutes": "Minutos"},
             )
             st.plotly_chart(fig, use_container_width=True)

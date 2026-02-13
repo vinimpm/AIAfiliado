@@ -18,12 +18,8 @@ from models.base import Base
 class Video(Base):
     __tablename__ = "videos"
     __table_args__ = (
-        CheckConstraint(
-            "duration IS NULL OR duration > 0", name="chk_videos_duration"
-        ),
-        CheckConstraint(
-            "cost_usd IS NULL OR cost_usd >= 0", name="chk_videos_cost_usd"
-        ),
+        CheckConstraint("duration IS NULL OR duration > 0", name="chk_videos_duration"),
+        CheckConstraint("cost_usd IS NULL OR cost_usd >= 0", name="chk_videos_cost_usd"),
         CheckConstraint(
             "status IN ('pending', 'generating', 'ready', 'failed')",
             name="chk_videos_status",
@@ -47,7 +43,9 @@ class Video(Base):
 
     # Relationships
     script: Mapped["Script"] = relationship(back_populates="videos")  # noqa: F821
-    publications: Mapped[list["Publication"]] = relationship(back_populates="video", cascade="all, delete-orphan")  # noqa: F821
+    publications: Mapped[list["Publication"]] = relationship(
+        back_populates="video", cascade="all, delete-orphan"
+    )  # noqa: F821
 
     def __repr__(self) -> str:
         return f"<Video {self.id} status={self.status}>"

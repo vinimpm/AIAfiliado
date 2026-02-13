@@ -49,6 +49,7 @@ _HTTP_TIMEOUT = httpx.Timeout(connect=10.0, read=30.0, write=10.0, pool=5.0)
 # 1. get_active_winners
 # ===========================================================================
 
+
 @celery.task(name="services.product_service.get_active_winners", bind=True, max_retries=3)
 def get_active_winners(self) -> list[dict]:
     """Return active, validated products that recorded at least one sale
@@ -59,9 +60,7 @@ def get_active_winners(self) -> list[dict]:
     """
     logger.info("get_active_winners.start")
 
-    sales_cutoff = datetime.now(UTC) - timedelta(
-        days=settings.WINNER_SALES_WINDOW_DAYS
-    )
+    sales_cutoff = datetime.now(UTC) - timedelta(days=settings.WINNER_SALES_WINDOW_DAYS)
 
     try:
         with get_session_cm() as session:
@@ -109,6 +108,7 @@ def get_active_winners(self) -> list[dict]:
 # 2. find_new_products
 # ===========================================================================
 
+
 @celery.task(name="services.product_service.find_new_products", bind=True, max_retries=3)
 def find_new_products(self, trend_ids: list[int]) -> list[dict]:
     """Search affiliate platforms for products matching the given trend IDs.
@@ -123,13 +123,7 @@ def find_new_products(self, trend_ids: list[int]) -> list[dict]:
 
     try:
         with get_session_cm() as session:
-            trends = (
-                session.execute(
-                    select(Trend).where(Trend.id.in_(trend_ids))
-                )
-                .scalars()
-                .all()
-            )
+            trends = session.execute(select(Trend).where(Trend.id.in_(trend_ids))).scalars().all()
 
             if not trends:
                 logger.warning("find_new_products.no_trends_found", trend_ids=trend_ids)
@@ -180,9 +174,7 @@ def find_new_products(self, trend_ids: list[int]) -> list[dict]:
 
                         # Check for duplicate by affiliate_url
                         existing = session.execute(
-                            select(Product).where(
-                                Product.affiliate_url == raw["affiliate_url"]
-                            )
+                            select(Product).where(Product.affiliate_url == raw["affiliate_url"])
                         ).scalar_one_or_none()
 
                         if existing is not None:
@@ -240,6 +232,7 @@ def find_new_products(self, trend_ids: list[int]) -> list[dict]:
 # ===========================================================================
 # 3. Platform search stubs
 # ===========================================================================
+
 
 @retry(
     retry=retry_if_exception_type((httpx.HTTPStatusError, httpx.ConnectError)),
@@ -357,6 +350,7 @@ PLATFORM_SEARCHERS.update(
 # 4. Product validation
 # ===========================================================================
 
+
 def _validate_product(raw: dict) -> bool:
     """Check a raw product dict against mandatory commercial criteria.
 
@@ -384,8 +378,7 @@ def _validate_product(raw: dict) -> bool:
         # 2. Commission -- accept if the absolute value meets the BRL minimum
         #    OR if it meets the percentage minimum (commission stored as % 0-100).
         commission_ok = (
-            commission >= settings.MIN_COMMISSION_BRL
-            or commission >= settings.MIN_COMMISSION_PCT
+            commission >= settings.MIN_COMMISSION_BRL or commission >= settings.MIN_COMMISSION_PCT
         )
         if not commission_ok:
             logger.debug(
@@ -447,6 +440,7 @@ def _validate_product(raw: dict) -> bool:
 # ===========================================================================
 # 5. Commercial score
 # ===========================================================================
+
 
 def _calc_commercial_score(raw: dict, trend: Trend) -> float:
     """Calculate a composite commercial score (0-100) for a candidate product.
@@ -522,12 +516,8 @@ def _calc_relevance(raw: dict, trend: Trend) -> float:
     """Compute cosine similarity between product text and trend text using
     TF-IDF vectorisation.  Returns a score in the range [0, 100].
     """
-    product_text = " ".join(
-        filter(None, [raw.get("title", ""), raw.get("category", "")])
-    ).strip()
-    trend_text = " ".join(
-        filter(None, [trend.name, trend.category or ""])
-    ).strip()
+    product_text = " ".join(filter(None, [raw.get("title", ""), raw.get("category", "")])).strip()
+    trend_text = " ".join(filter(None, [trend.name, trend.category or ""])).strip()
 
     if not product_text or not trend_text:
         return 0.0
@@ -550,6 +540,7 @@ def _calc_relevance(raw: dict, trend: Trend) -> float:
 # 6. retire_stale_products
 # ===========================================================================
 
+
 @celery.task(
     name="services.product_service.retire_stale_products",
     bind=True,
@@ -566,9 +557,7 @@ def retire_stale_products(self) -> int:
     """
     logger.info("retire_stale_products.start")
 
-    cutoff = datetime.now(UTC) - timedelta(
-        days=settings.RETIRE_AFTER_DAYS_NO_SALES
-    )
+    cutoff = datetime.now(UTC) - timedelta(days=settings.RETIRE_AFTER_DAYS_NO_SALES)
 
     try:
         with get_session_cm() as session:
@@ -594,9 +583,7 @@ def retire_stale_products(self) -> int:
                     product_id=product.id,
                     title=product.title,
                     last_used_at=(
-                        product.last_used_at.isoformat()
-                        if product.last_used_at
-                        else None
+                        product.last_used_at.isoformat() if product.last_used_at else None
                     ),
                 )
 
@@ -611,6 +598,7 @@ def retire_stale_products(self) -> int:
 # ===========================================================================
 # 7. check_weekly_limit
 # ===========================================================================
+
 
 def check_weekly_limit(product_id: int) -> bool:
     """Return ``True`` if the product has **not yet reached** the weekly

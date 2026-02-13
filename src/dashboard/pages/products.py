@@ -41,10 +41,7 @@ def render(session: Session):
         st.dataframe(df_winners, use_container_width=True, hide_index=True)
         total_rev = df_winners["total_revenue"].sum()
         total_sales = df_winners["total_sales"].sum()
-        st.markdown(
-            f"**Total:** {int(total_sales)} vendas | "
-            f"R$ {float(total_rev):,.2f} receita"
-        )
+        st.markdown(f"**Total:** {int(total_sales)} vendas | R$ {float(total_rev):,.2f} receita")
     else:
         st.info("Nenhum produto vencedor ativo.")
 
@@ -58,7 +55,9 @@ def render(session: Session):
         df_plat = queries.products_by_platform(session)
         if not df_plat.empty:
             fig = pie_chart(
-                df_plat, names="source_platform", values="count",
+                df_plat,
+                names="source_platform",
+                values="count",
             )
             st.plotly_chart(fig, use_container_width=True)
         else:
@@ -70,7 +69,9 @@ def render(session: Session):
         df_top = queries.top_products_by_revenue(session, limit=10)
         if not df_top.empty:
             fig = bar_chart(
-                df_top, x="total_revenue", y="title",
+                df_top,
+                x="total_revenue",
+                y="title",
                 labels={"total_revenue": "Receita (R$)", "title": "Produto"},
             )
             fig.update_layout(yaxis={"categoryorder": "total ascending"})

@@ -48,9 +48,7 @@ class Script(Base):
     # Relationships
     product: Mapped["Product"] = relationship(back_populates="scripts")  # noqa: F821
     trend: Mapped["Trend | None"] = relationship(back_populates="scripts")  # noqa: F821
-    videos: Mapped[list["Video"]] = relationship(
-        back_populates="script", cascade="all, delete-orphan"
-    )  # noqa: F821
+    videos: Mapped[list["Video"]] = relationship(back_populates="script", cascade="all, delete-orphan")  # noqa: F821  # fmt: skip
 
     def __repr__(self) -> str:
         return f"<Script {self.id} variant={self.variant} status={self.status}>"

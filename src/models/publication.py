@@ -43,9 +43,7 @@ class Publication(Base):
     # Relationships
     video: Mapped["Video"] = relationship(back_populates="publications")  # noqa: F821
     run: Mapped["DailyRun | None"] = relationship(back_populates="publications")  # noqa: F821
-    metrics: Mapped[list["Metric"]] = relationship(
-        back_populates="publication", cascade="all, delete-orphan"
-    )  # noqa: F821
+    metrics: Mapped[list["Metric"]] = relationship(back_populates="publication", cascade="all, delete-orphan")  # noqa: F821  # fmt: skip
 
     def __repr__(self) -> str:
         return f"<Publication {self.id} {self.platform} {self.status}>"

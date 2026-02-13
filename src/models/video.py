@@ -43,9 +43,7 @@ class Video(Base):
 
     # Relationships
     script: Mapped["Script"] = relationship(back_populates="videos")  # noqa: F821
-    publications: Mapped[list["Publication"]] = relationship(
-        back_populates="video", cascade="all, delete-orphan"
-    )  # noqa: F821
+    publications: Mapped[list["Publication"]] = relationship(back_populates="video", cascade="all, delete-orphan")  # noqa: F821  # fmt: skip
 
     def __repr__(self) -> str:
         return f"<Video {self.id} status={self.status}>"

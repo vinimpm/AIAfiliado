@@ -259,9 +259,10 @@ O diretorio `docs/` contem 14 documentos detalhados cobrindo cada aspecto do sis
 
 | Fase | Foco | Status |
 |---|---|---|
-| **Fase 1 — MVP** | Pipeline end-to-end com TikTok, Account Health Gate, HeyGen | Codigo completo |
-| **Fase 2 — Automacao** | Multi-plataforma (IG/YT), compliance LLM, A/B testing, reaproveitamento de vencedores | Codigo completo |
-| **Fase 3 — Escala** | Dashboard, otimizacao de custos, conteudo evergreen, aprendizado continuo | Planejado |
+| **Fase 1 — MVP** | Pipeline end-to-end com TikTok, Account Health Gate, HeyGen | Completo |
+| **Fase 2 — Automacao** | Multi-plataforma (IG/YT), compliance LLM, A/B testing, reaproveitamento de vencedores | Completo |
+| **Fase 3 — Escala** | YouTube Shorts, feedback loops, CloudWatch alarmes, runbooks, otimizacao S3 | Completo |
+| **Futuro** | Dashboard web (Grafana/Streamlit), outros idiomas, multiplos avatares | Backlog |
 
 ---
 

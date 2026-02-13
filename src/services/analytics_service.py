@@ -15,7 +15,7 @@ Responsibilities:
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx
@@ -65,7 +65,7 @@ def collect_all_metrics(self) -> dict:
     """
     logger.info("collect_all_metrics.start")
 
-    cutoff = datetime.now(timezone.utc) - timedelta(days=7)
+    cutoff = datetime.now(UTC) - timedelta(days=7)
     publications_checked = 0
     errors = 0
 
@@ -631,7 +631,7 @@ def evaluate_winners() -> list[int]:
     """
     logger.info("evaluate_winners.start")
 
-    sales_cutoff = datetime.now(timezone.utc) - timedelta(
+    sales_cutoff = datetime.now(UTC) - timedelta(
         days=settings.WINNER_SALES_WINDOW_DAYS,
     )
     winner_ids: list[int] = []
@@ -720,7 +720,7 @@ def evaluate_winners() -> list[int]:
                 product.is_active = True
                 product.total_sales = int(agg.total_sales)
                 product.total_revenue = float(agg.total_revenue)
-                product.last_used_at = datetime.now(timezone.utc)
+                product.last_used_at = datetime.now(UTC)
 
                 winner_ids.append(product.id)
 
@@ -781,7 +781,7 @@ def should_pause(publication_id: int) -> bool:
                 )
                 return False
 
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             hours_since_post = (now - pub.posted_at).total_seconds() / 3600.0
 
             if hours_since_post <= 24:
@@ -872,7 +872,7 @@ def determine_ab_winner(
         hours_threshold=hours_threshold,
     )
 
-    min_posted_at = datetime.now(timezone.utc) - timedelta(
+    min_posted_at = datetime.now(UTC) - timedelta(
         hours=hours_threshold
     )
 
@@ -995,7 +995,7 @@ def should_retire(product_id: int) -> bool:
     """
     logger.debug("should_retire.start", product_id=product_id)
 
-    cutoff = datetime.now(timezone.utc) - timedelta(
+    cutoff = datetime.now(UTC) - timedelta(
         days=settings.RETIRE_AFTER_DAYS_NO_SALES,
     )
 
@@ -1080,7 +1080,7 @@ def retire_stale_products() -> int:
     """
     logger.info("retire_stale_products.start")
 
-    cutoff = datetime.now(timezone.utc) - timedelta(
+    cutoff = datetime.now(UTC) - timedelta(
         days=settings.RETIRE_AFTER_DAYS_NO_SALES,
     )
     retired_count = 0

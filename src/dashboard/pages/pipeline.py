@@ -5,7 +5,7 @@ from __future__ import annotations
 import streamlit as st
 from sqlalchemy.orm import Session
 
-from dashboard.components.charts import line_chart, bar_chart
+from dashboard.components.charts import bar_chart, line_chart
 from dashboard.components.filters import date_range_filter
 from dashboard.data import queries
 

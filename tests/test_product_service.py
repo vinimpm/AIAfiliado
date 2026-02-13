@@ -4,17 +4,13 @@ Covers product validation logic, commercial score calculation,
 and weekly limit checking.
 """
 
-from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 from services.product_service import (
     _calc_commercial_score,
     _validate_product,
     check_weekly_limit,
 )
-
 
 # ===================================================================
 # _validate_product

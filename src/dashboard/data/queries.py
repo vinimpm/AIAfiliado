@@ -6,7 +6,7 @@ suitable for Streamlit display and Plotly charts.
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 
 import pandas as pd
 from sqlalchemy import func
@@ -17,12 +17,11 @@ from models.metric import Metric
 from models.product import Product
 from models.publication import Publication
 from models.script import Script
-from models.trend import Trend
 from models.video import Video
 
 
 def _cutoff(days: int) -> datetime:
-    return datetime.now(timezone.utc) - timedelta(days=days)
+    return datetime.now(UTC) - timedelta(days=days)
 
 
 # ---------------------------------------------------------------------------
@@ -426,7 +425,7 @@ def cumulative_pnl(session: Session, days: int = 30) -> pd.DataFrame:
 
 def budget_usage_today(session: Session, daily_budget: float) -> dict:
     """Today's cost vs daily budget for gauge."""
-    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
     cost = session.query(
         func.coalesce(func.sum(Video.cost_usd), 0)
     ).filter(Video.created_at >= today_start).scalar()

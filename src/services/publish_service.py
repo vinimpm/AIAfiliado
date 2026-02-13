@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import random
 import time
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 from urllib.parse import urlparse
 
@@ -168,7 +168,7 @@ def schedule_publication(
             if scheduled_at is not None:
                 publish_at = datetime.fromisoformat(scheduled_at)
                 if publish_at.tzinfo is None:
-                    publish_at = publish_at.replace(tzinfo=timezone.utc)
+                    publish_at = publish_at.replace(tzinfo=UTC)
             else:
                 publish_at = _pick_schedule_time(platform)
 
@@ -247,7 +247,7 @@ def schedule_publication(
         # ------------------------------------------------------------------
         # Step 5: Wait until the scheduled time (if in the future)
         # ------------------------------------------------------------------
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         wait_seconds = (publish_at - now).total_seconds()
         if wait_seconds > 0:
             logger.info(
@@ -288,7 +288,7 @@ def schedule_publication(
             if result["status"] == "POSTED":
                 publication.status = "POSTED"
                 publication.external_id = result.get("external_id")
-                publication.posted_at = datetime.now(timezone.utc)
+                publication.posted_at = datetime.now(UTC)
                 publication.error_message = None
             else:
                 publication.status = "FAILED"
@@ -377,7 +377,7 @@ def _pick_schedule_time(platform: str) -> datetime:
     datetime
         A timezone-aware (UTC) datetime for the scheduled publication.
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     windows = SCHEDULE_WINDOWS[platform]
 
     # Add random 0-30 minute variation to each window
@@ -516,7 +516,7 @@ def _check_cooldown(platform: str, session) -> bool:
     # Count how many posts have been made today across all platforms
     today_start = datetime(
         *date.today().timetuple()[:3],
-        tzinfo=timezone.utc,
+        tzinfo=UTC,
     )
     posts_today = session.execute(
         select(func.count())
@@ -547,7 +547,7 @@ def _check_cooldown(platform: str, session) -> bool:
         ).scalar()
 
         if last_posted is not None:
-            elapsed = datetime.now(timezone.utc) - last_posted
+            elapsed = datetime.now(UTC) - last_posted
             required = timedelta(minutes=cooldown_minutes)
             if elapsed < required:
                 remaining = (required - elapsed).total_seconds() / 60

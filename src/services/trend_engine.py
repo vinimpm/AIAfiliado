@@ -11,7 +11,7 @@ from __future__ import annotations
 import random
 import re
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import requests
@@ -187,7 +187,7 @@ def _collect_google_trends() -> list[dict]:
     """
     global _google_cache
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     # Return cached data if still valid
     if (
@@ -575,11 +575,11 @@ def _get_existing_trend_names_this_week(session) -> set[str]:
     Query the database for trend names already processed this week
     to avoid duplicates.
     """
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now(UTC).date()
     # ISO week starts on Monday
     week_start = today - timedelta(days=today.weekday())
     week_start_dt = datetime(
-        week_start.year, week_start.month, week_start.day, tzinfo=timezone.utc
+        week_start.year, week_start.month, week_start.day, tzinfo=UTC
     )
 
     stmt = (
@@ -760,7 +760,7 @@ def collect_trends(self, run_id: int) -> list[dict]:
 
     with get_session_cm() as session:
         for trend_data in deduplicated:
-            now_utc = datetime.now(timezone.utc)
+            now_utc = datetime.now(UTC)
             window = trend_data.get("window_days", 5)
 
             trend_obj = Trend(

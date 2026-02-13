@@ -6,9 +6,9 @@ import streamlit as st
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from dashboard.components.kpi_card import kpi_row
-from dashboard.components.charts import line_chart, gauge_chart
+from dashboard.components.charts import gauge_chart, line_chart
 from dashboard.components.filters import date_range_filter
+from dashboard.components.kpi_card import kpi_row
 from dashboard.data import queries
 
 

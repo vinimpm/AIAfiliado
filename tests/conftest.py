@@ -4,7 +4,7 @@ Provides an in-memory SQLite database, session management,
 and pre-built model instances for each core entity.
 """
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 import pytest
 from sqlalchemy import create_engine
@@ -13,13 +13,11 @@ from sqlalchemy.pool import StaticPool
 
 from models.base import Base
 from models.daily_run import DailyRun
-from models.metric import Metric
 from models.product import Product
 from models.publication import Publication
 from models.script import Script
 from models.trend import Trend
 from models.video import Video
-
 
 # ---------------------------------------------------------------------------
 # Database fixtures
@@ -43,8 +41,8 @@ def db_engine():
 @pytest.fixture()
 def db_session(db_engine):
     """Yield a transactional session that rolls back after each test."""
-    SessionLocal = sessionmaker(bind=db_engine, expire_on_commit=False)
-    session: Session = SessionLocal()
+    session_local = sessionmaker(bind=db_engine, expire_on_commit=False)
+    session: Session = session_local()
     yield session
     session.rollback()
     session.close()
@@ -65,7 +63,7 @@ def sample_daily_run(db_session):
         posts_allowed=3,
         cooldown_minutes=120,
         status="running",
-        started_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
     )
     db_session.add(run)
     db_session.flush()
@@ -88,7 +86,7 @@ def sample_product(db_session):
         score=75.0,
         total_sales=0,
         total_revenue=0,
-        validated_at=datetime.now(timezone.utc),
+        validated_at=datetime.now(UTC),
     )
     db_session.add(product)
     db_session.flush()
@@ -107,7 +105,7 @@ def sample_trend(db_session, sample_daily_run):
         category="beauty",
         platform="tiktok",
         status="active",
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
     )
     db_session.add(trend)
     db_session.flush()
@@ -128,7 +126,7 @@ def sample_script(db_session, sample_product, sample_trend):
         hash="a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
         variant="A",
         status="approved",
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
     )
     db_session.add(script)
     db_session.flush()
@@ -146,7 +144,7 @@ def sample_video(db_session, sample_script):
         hash="f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5",
         cost_usd=0.50,
         status="ready",
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
     )
     db_session.add(video)
     db_session.flush()
@@ -162,7 +160,7 @@ def sample_publication(db_session, sample_video, sample_daily_run):
         platform="tiktok",
         status="POSTED",
         external_id="tiktok_12345",
-        posted_at=datetime.now(timezone.utc),
+        posted_at=datetime.now(UTC),
     )
     db_session.add(publication)
     db_session.flush()

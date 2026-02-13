@@ -2,11 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
-
 import streamlit as st
-
-from dashboard.config import dash_settings
 
 
 def date_range_filter(key: str = "date_range") -> int:

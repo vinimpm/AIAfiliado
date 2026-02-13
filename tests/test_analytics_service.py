@@ -4,17 +4,14 @@ Covers pause detection, retirement detection, and A/B winner determination.
 Uses pytest-mock (mocker) and unittest.mock to isolate database operations.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 from services.analytics_service import (
     determine_ab_winner,
     should_pause,
     should_retire,
 )
-
 
 # ===================================================================
 # should_pause
@@ -48,7 +45,7 @@ class TestShouldPause:
         mock_session_cm.return_value.__exit__ = MagicMock(return_value=False)
 
         # Publication posted 30 hours ago
-        posted_at = datetime.now(timezone.utc) - timedelta(hours=30)
+        posted_at = datetime.now(UTC) - timedelta(hours=30)
         pub = self._make_publication_mock(posted_at=posted_at)
         metric = self._make_metric_mock(retention_3s=0.1, views=500)
 
@@ -65,7 +62,7 @@ class TestShouldPause:
         mock_session_cm.return_value.__enter__ = MagicMock(return_value=mock_session)
         mock_session_cm.return_value.__exit__ = MagicMock(return_value=False)
 
-        posted_at = datetime.now(timezone.utc) - timedelta(hours=30)
+        posted_at = datetime.now(UTC) - timedelta(hours=30)
         pub = self._make_publication_mock(posted_at=posted_at)
         metric = self._make_metric_mock(retention_3s=0.5, views=50)
 
@@ -81,7 +78,7 @@ class TestShouldPause:
         mock_session_cm.return_value.__enter__ = MagicMock(return_value=mock_session)
         mock_session_cm.return_value.__exit__ = MagicMock(return_value=False)
 
-        posted_at = datetime.now(timezone.utc) - timedelta(hours=30)
+        posted_at = datetime.now(UTC) - timedelta(hours=30)
         pub = self._make_publication_mock(posted_at=posted_at)
         metric = self._make_metric_mock(retention_3s=0.75, views=5000)
 
@@ -97,7 +94,7 @@ class TestShouldPause:
         mock_session_cm.return_value.__enter__ = MagicMock(return_value=mock_session)
         mock_session_cm.return_value.__exit__ = MagicMock(return_value=False)
 
-        posted_at = datetime.now(timezone.utc) - timedelta(hours=12)
+        posted_at = datetime.now(UTC) - timedelta(hours=12)
         pub = self._make_publication_mock(posted_at=posted_at)
 
         mock_session.execute.return_value.scalar_one_or_none.return_value = pub

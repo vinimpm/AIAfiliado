@@ -5,9 +5,8 @@ from __future__ import annotations
 import streamlit as st
 
 from dashboard.config import dash_settings
+from dashboard.pages import financeiro, health, overview, performance, pipeline, products
 from models.database import get_session_cm
-
-from dashboard.pages import overview, pipeline, performance, products, financeiro, health
 
 st.set_page_config(
     page_title=dash_settings.PAGE_TITLE,

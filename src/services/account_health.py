@@ -7,7 +7,7 @@ by setting posts_allowed and cooldown_minutes accordingly.
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import func, select
@@ -136,7 +136,7 @@ def _count_removals(session: Session, days: int = 30) -> int:
     the look-back window.
     """
     try:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
         stmt = (
             select(func.count())
             .select_from(Publication)
@@ -285,7 +285,7 @@ def _calc_content_similarity(session: Session) -> float:
 def _count_cadence(session: Session, days: int = 7) -> int:
     """Count publications created in the last *days* days."""
     try:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
         stmt = (
             select(func.count())
             .select_from(Publication)
@@ -337,7 +337,7 @@ def evaluate_account_health(self, run_date: str) -> dict[str, Any]:  # noqa: C90
     """
     logger.info("account_health.start", run_date=run_date)
     parsed_date = date.fromisoformat(run_date)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     try:
         with get_session_cm() as session:
@@ -494,7 +494,7 @@ def _days_since_last_removal(session: Session) -> float:
         last_removal_at: datetime | None = session.execute(stmt).scalar()
         if last_removal_at is None:
             return 999.0
-        delta = datetime.now(timezone.utc) - last_removal_at
+        delta = datetime.now(UTC) - last_removal_at
         return max(delta.total_seconds() / 86400.0, 0.0)
     except Exception:
         logger.exception("days_since_last_removal.error")

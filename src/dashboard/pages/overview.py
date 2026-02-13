@@ -5,9 +5,9 @@ from __future__ import annotations
 import streamlit as st
 from sqlalchemy.orm import Session
 
-from dashboard.components.kpi_card import kpi_row
-from dashboard.components.charts import bar_chart, stacked_bar_chart
+from dashboard.components.charts import stacked_bar_chart
 from dashboard.components.filters import date_range_filter
+from dashboard.components.kpi_card import kpi_row
 from dashboard.data import queries
 
 

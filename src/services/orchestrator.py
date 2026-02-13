@@ -17,14 +17,13 @@ from __future__ import annotations
 
 import time
 import uuid
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from typing import Any
 
 from sqlalchemy import func, select
 
 from app.celery_app import celery
 from app.cloudwatch import emit_metric
-from app.config import settings
 from app.logging import get_logger, set_correlation_id, set_run_id
 from models.daily_run import DailyRun
 from models.database import get_session_cm
@@ -501,7 +500,7 @@ def trigger_daily_pipeline(self) -> dict:
         # Emit daily cost metric
         try:
             with get_session_cm() as session:
-                today_start = datetime(*today.timetuple()[:3], tzinfo=timezone.utc)
+                today_start = datetime(*today.timetuple()[:3], tzinfo=UTC)
                 total_cost = float(
                     session.execute(
                         select(func.coalesce(func.sum(Video.cost_usd), 0.0)).where(
@@ -576,7 +575,7 @@ def _update_daily_run_status(run_id: int | None, status: str) -> None:
                 return
 
             run.status = status
-            run.finished_at = datetime.now(timezone.utc)
+            run.finished_at = datetime.now(UTC)
 
         logger.info(
             "_update_daily_run_status.done",

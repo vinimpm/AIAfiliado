@@ -16,7 +16,7 @@ from __future__ import annotations
 import hashlib
 import random
 import time
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from typing import Any
 
 import boto3
@@ -182,9 +182,6 @@ def generate_video(self, script_id: int) -> dict:
             )
 
             # Capture script fields before leaving the session
-            script_hook = script.hook
-            script_body = script.body
-            script_cta = script.cta
 
         # ------------------------------------------------------------------
         # Step 5: POST to HeyGen /v2/video/generate
@@ -512,7 +509,7 @@ def _check_daily_budget(session) -> bool:
     """
     today_start = datetime(
         *date.today().timetuple()[:3],
-        tzinfo=timezone.utc,
+        tzinfo=UTC,
     )
 
     total_cost = session.execute(

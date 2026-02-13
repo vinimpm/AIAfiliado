@@ -11,7 +11,7 @@ Responsibilities:
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx
@@ -59,7 +59,7 @@ def get_active_winners(self) -> list[dict]:
     """
     logger.info("get_active_winners.start")
 
-    sales_cutoff = datetime.now(timezone.utc) - timedelta(
+    sales_cutoff = datetime.now(UTC) - timedelta(
         days=settings.WINNER_SALES_WINDOW_DAYS
     )
 
@@ -203,7 +203,7 @@ def find_new_products(self, trend_ids: list[int]) -> list[dict]:
                             status="validated",
                             score=round(score, 2),
                             is_active=True,
-                            validated_at=datetime.now(timezone.utc),
+                            validated_at=datetime.now(UTC),
                         )
                         session.add(product)
                         session.flush()
@@ -566,7 +566,7 @@ def retire_stale_products(self) -> int:
     """
     logger.info("retire_stale_products.start")
 
-    cutoff = datetime.now(timezone.utc) - timedelta(
+    cutoff = datetime.now(UTC) - timedelta(
         days=settings.RETIRE_AFTER_DAYS_NO_SALES
     )
 
@@ -620,7 +620,7 @@ def check_weekly_limit(product_id: int) -> bool:
     """
     logger.debug("check_weekly_limit.start", product_id=product_id)
 
-    week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    week_ago = datetime.now(UTC) - timedelta(days=7)
 
     try:
         with get_session_cm() as session:

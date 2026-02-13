@@ -1,12 +1,13 @@
 """Tests for dashboard queries using SQLite in-memory fixtures."""
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from dashboard.data import queries
 from models.base import Base
 from models.daily_run import DailyRun
 from models.metric import Metric
@@ -15,9 +16,6 @@ from models.publication import Publication
 from models.script import Script
 from models.trend import Trend
 from models.video import Video
-
-from dashboard.data import queries
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -39,15 +37,15 @@ def db_engine():
 
 @pytest.fixture()
 def session(db_engine):
-    SessionLocal = sessionmaker(bind=db_engine, expire_on_commit=False)
-    s: Session = SessionLocal()
+    session_local = sessionmaker(bind=db_engine, expire_on_commit=False)
+    s: Session = session_local()
     yield s
     s.rollback()
     s.close()
 
 
 def _now():
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 @pytest.fixture()

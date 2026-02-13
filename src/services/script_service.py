@@ -14,8 +14,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from datetime import datetime, timedelta, timezone
-from typing import Any
+from datetime import UTC, datetime, timedelta
 
 import openai
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -630,7 +629,7 @@ def _load_recent_scripts(session, platform: str) -> list[dict]:
         List of dicts with ``hook``, ``body``, ``cta`` keys.
     """
     try:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=7)
+        cutoff = datetime.now(UTC) - timedelta(days=7)
         stmt = (
             select(Script.hook, Script.body, Script.cta)
             .where(

@@ -4,14 +4,12 @@ Covers blocklist checking, CTA compatibility validation, and
 duration estimation logic.
 """
 
-import pytest
 
 from services.compliance import (
     check_blocklist,
     check_cta_compatibility,
     check_duration,
 )
-
 
 # ===================================================================
 # check_blocklist

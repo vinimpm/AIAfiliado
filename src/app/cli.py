@@ -89,11 +89,12 @@ def collect_metrics():
 @cli.command()
 def status():
     """Mostra status atual do sistema."""
-    from models.database import get_session_cm
+    from sqlalchemy import func, select
+
     from models.daily_run import DailyRun
+    from models.database import get_session_cm
     from models.product import Product
     from models.publication import Publication
-    from sqlalchemy import func, select
 
     with get_session_cm() as session:
         last_run = session.execute(

@@ -447,12 +447,14 @@ def _upload_to_s3(video_url: str, video_id: int) -> str:
     s3_key = f"{today.year}/{today.month:02d}/{today.day:02d}/video_{video_id}.mp4"
 
     # Upload to S3
-    s3_client = boto3.client(
-        "s3",
-        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-        region_name=settings.AWS_REGION,
-    )
+    s3_kwargs: dict[str, Any] = {
+        "aws_access_key_id": settings.AWS_ACCESS_KEY_ID,
+        "aws_secret_access_key": settings.AWS_SECRET_ACCESS_KEY,
+        "region_name": settings.AWS_REGION,
+    }
+    if settings.S3_ENDPOINT_URL:
+        s3_kwargs["endpoint_url"] = settings.S3_ENDPOINT_URL
+    s3_client = boto3.client("s3", **s3_kwargs)
 
     s3_client.put_object(
         Bucket=settings.S3_BUCKET_NAME,
@@ -461,7 +463,12 @@ def _upload_to_s3(video_url: str, video_id: int) -> str:
         ContentType="video/mp4",
     )
 
-    s3_url = f"https://{settings.S3_BUCKET_NAME}.s3.{settings.AWS_REGION}.amazonaws.com/{s3_key}"
+    if settings.S3_ENDPOINT_URL:
+        s3_url = f"{settings.S3_ENDPOINT_URL}/{settings.S3_BUCKET_NAME}/{s3_key}"
+    else:
+        s3_url = (
+            f"https://{settings.S3_BUCKET_NAME}.s3.{settings.AWS_REGION}.amazonaws.com/{s3_key}"
+        )
 
     logger.info(
         "_upload_to_s3.done",

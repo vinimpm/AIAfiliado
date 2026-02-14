@@ -1,24 +1,6 @@
 from __future__ import annotations
 
-import json
-import logging
-
 from pydantic_settings import BaseSettings
-
-logger = logging.getLogger(__name__)
-
-
-def _load_secret(secret_name: str, region: str) -> str | None:
-    """Load a single secret value from AWS Secrets Manager."""
-    try:
-        import boto3
-
-        client = boto3.client("secretsmanager", region_name=region)
-        response = client.get_secret_value(SecretId=secret_name)
-        return response["SecretString"]
-    except Exception as exc:
-        logger.warning("Failed to load secret %s: %s", secret_name, exc)
-        return None
 
 
 class Settings(BaseSettings):
@@ -76,12 +58,12 @@ class Settings(BaseSettings):
     SHOPEE_APP_ID: str = ""
     SHOPEE_SECRET: str = ""
 
-    # --- AWS ---
+    # --- S3 Storage ---
     AWS_ACCESS_KEY_ID: str = ""
     AWS_SECRET_ACCESS_KEY: str = ""
     AWS_REGION: str = "sa-east-1"
     S3_BUCKET_NAME: str = "aiafiliado-videos"
-    AWS_SECRETS_PREFIX: str = "aiafiliado"
+    S3_ENDPOINT_URL: str = ""
 
     # --- Budget & Limits ---
     DAILY_BUDGET_USD: float = 5.00
@@ -140,70 +122,4 @@ class Settings(BaseSettings):
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 
-def _create_settings() -> Settings:
-    """Create settings and overlay AWS Secrets Manager values in production."""
-    s = Settings()
-    if s.ENV != "production":
-        return s
-
-    prefix = s.AWS_SECRETS_PREFIX
-    region = s.AWS_REGION
-
-    # Simple string secrets
-    simple_map = {
-        f"{prefix}/heygen-api-key": "HEYGEN_API_KEY",
-        f"{prefix}/openai-api-key": "OPENAI_API_KEY",
-        f"{prefix}/database-url": "DATABASE_URL",
-    }
-    for secret_name, attr in simple_map.items():
-        value = _load_secret(secret_name, region)
-        if value:
-            object.__setattr__(s, attr, value)
-
-    # JSON secrets (multi-field)
-    json_map = {
-        f"{prefix}/tiktok-oauth": {
-            "client_key": "TIKTOK_CLIENT_KEY",
-            "client_secret": "TIKTOK_CLIENT_SECRET",
-            "access_token": "TIKTOK_ACCESS_TOKEN",
-        },
-        f"{prefix}/instagram-token": {
-            "access_token": "INSTAGRAM_ACCESS_TOKEN",
-            "user_id": "INSTAGRAM_USER_ID",
-        },
-        f"{prefix}/youtube-oauth": {
-            "client_id": "YOUTUBE_CLIENT_ID",
-            "client_secret": "YOUTUBE_CLIENT_SECRET",
-            "refresh_token": "YOUTUBE_REFRESH_TOKEN",
-        },
-        f"{prefix}/hotmart-keys": {
-            "client_id": "HOTMART_CLIENT_ID",
-            "client_secret": "HOTMART_CLIENT_SECRET",
-            "access_token": "HOTMART_ACCESS_TOKEN",
-        },
-        f"{prefix}/amazon-keys": {
-            "access_key": "AMAZON_ACCESS_KEY",
-            "secret_key": "AMAZON_SECRET_KEY",
-            "associate_tag": "AMAZON_ASSOCIATE_TAG",
-        },
-        f"{prefix}/shopee-keys": {
-            "app_id": "SHOPEE_APP_ID",
-            "secret": "SHOPEE_SECRET",
-        },
-    }
-    for secret_name, field_map in json_map.items():
-        raw = _load_secret(secret_name, region)
-        if raw:
-            try:
-                data = json.loads(raw)
-                for json_key, attr in field_map.items():
-                    if json_key in data and data[json_key]:
-                        object.__setattr__(s, attr, data[json_key])
-            except json.JSONDecodeError:
-                logger.warning("Invalid JSON in secret %s", secret_name)
-
-    logger.info("AWS Secrets Manager loaded for production")
-    return s
-
-
-settings = _create_settings()
+settings = Settings()

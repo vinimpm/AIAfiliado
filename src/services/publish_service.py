@@ -1390,17 +1390,24 @@ def _download_from_s3(s3_url: str) -> bytes:
     if ".s3." in hostname and ".amazonaws.com" in hostname:
         bucket = hostname.split(".s3.")[0]
         key = parsed.path.lstrip("/")
+    elif settings.S3_ENDPOINT_URL and s3_url.startswith(settings.S3_ENDPOINT_URL):
+        # Railway Buckets: {endpoint}/{bucket}/{key}
+        path_parts = parsed.path.lstrip("/").split("/", 1)
+        bucket = path_parts[0] if len(path_parts) > 0 else settings.S3_BUCKET_NAME
+        key = path_parts[1] if len(path_parts) > 1 else ""
     else:
         # Fallback: use configured bucket and treat path as key
         bucket = settings.S3_BUCKET_NAME
         key = parsed.path.lstrip("/")
 
-    s3_client = boto3.client(
-        "s3",
-        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-        region_name=settings.AWS_REGION,
-    )
+    s3_kwargs: dict[str, str] = {
+        "aws_access_key_id": settings.AWS_ACCESS_KEY_ID,
+        "aws_secret_access_key": settings.AWS_SECRET_ACCESS_KEY,
+        "region_name": settings.AWS_REGION,
+    }
+    if settings.S3_ENDPOINT_URL:
+        s3_kwargs["endpoint_url"] = settings.S3_ENDPOINT_URL
+    s3_client = boto3.client("s3", **s3_kwargs)
 
     response = s3_client.get_object(Bucket=bucket, Key=key)
     video_bytes = response["Body"].read()
@@ -1437,16 +1444,23 @@ def _generate_presigned_url(s3_url: str) -> str:
     if ".s3." in hostname and ".amazonaws.com" in hostname:
         bucket = hostname.split(".s3.")[0]
         key = parsed.path.lstrip("/")
+    elif settings.S3_ENDPOINT_URL and s3_url.startswith(settings.S3_ENDPOINT_URL):
+        # Railway Buckets: {endpoint}/{bucket}/{key}
+        path_parts = parsed.path.lstrip("/").split("/", 1)
+        bucket = path_parts[0] if len(path_parts) > 0 else settings.S3_BUCKET_NAME
+        key = path_parts[1] if len(path_parts) > 1 else ""
     else:
         bucket = settings.S3_BUCKET_NAME
         key = parsed.path.lstrip("/")
 
-    s3_client = boto3.client(
-        "s3",
-        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-        region_name=settings.AWS_REGION,
-    )
+    s3_kwargs: dict[str, str] = {
+        "aws_access_key_id": settings.AWS_ACCESS_KEY_ID,
+        "aws_secret_access_key": settings.AWS_SECRET_ACCESS_KEY,
+        "region_name": settings.AWS_REGION,
+    }
+    if settings.S3_ENDPOINT_URL:
+        s3_kwargs["endpoint_url"] = settings.S3_ENDPOINT_URL
+    s3_client = boto3.client("s3", **s3_kwargs)
 
     presigned_url = s3_client.generate_presigned_url(
         "get_object",

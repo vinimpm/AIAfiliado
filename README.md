@@ -2,8 +2,7 @@
   <img src="https://img.shields.io/badge/python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
   <img src="https://img.shields.io/badge/celery-5.3+-37814A?style=for-the-badge&logo=celery&logoColor=white" />
   <img src="https://img.shields.io/badge/postgresql-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" />
-  <img src="https://img.shields.io/badge/AWS-ECS%20%7C%20S3%20%7C%20RDS-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white" />
-  <img src="https://img.shields.io/badge/terraform-IaC-7B42BC?style=for-the-badge&logo=terraform&logoColor=white" />
+  <img src="https://img.shields.io/badge/Railway-deploy-0B0D0E?style=for-the-badge&logo=railway&logoColor=white" />
   <img src="https://img.shields.io/badge/docker-ready-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
 </p>
 
@@ -52,15 +51,14 @@ flowchart LR
 |---|---|
 | **Linguagem** | Python 3.11+ |
 | **Orquestracao** | Celery + Redis |
-| **Banco de Dados** | PostgreSQL (AWS RDS) |
-| **Cloud** | AWS (ECS Fargate, S3, Secrets Manager, CloudWatch, EventBridge) |
-| **IaC** | Terraform (14 arquivos, infra completa) |
+| **Banco de Dados** | PostgreSQL |
+| **Cloud** | Railway (PostgreSQL, Redis, S3-compatible Buckets, Cron Jobs) |
 | **Video** | HeyGen API (avatar realista) |
 | **LLM** | GPT-4o-mini / Claude Haiku |
 | **Dashboard** | Streamlit + Plotly |
 | **Publicacao** | TikTok Content Posting API, Instagram Graph API, YouTube Data API |
 | **Afiliados** | TikTok Shop, Hotmart, Monetizze, Amazon Associates, Shopee |
-| **CI/CD** | GitHub Actions + Docker |
+| **CI/CD** | GitHub Actions + Railway CLI |
 
 ---
 
@@ -69,9 +67,9 @@ flowchart LR
 ```
 src/
 ├── app/                        # Core da aplicacao
-│   ├── config.py               # Configuracoes (pydantic-settings + Secrets Manager)
+│   ├── config.py               # Configuracoes (pydantic-settings + env vars)
 │   ├── celery_app.py           # Celery + Redis (TLS-ready)
-│   ├── cloudwatch.py           # Emissao de metricas CloudWatch
+│   ├── cloudwatch.py           # Emissao de metricas (structured logging)
 │   ├── healthcheck.py          # Health endpoint (DB + Redis + Celery)
 │   ├── cli.py                  # CLI para comandos manuais
 │   └── logging.py              # Logging estruturado (structlog)
@@ -99,24 +97,6 @@ src/
     ├── video_service.py        # Geracao de video (HeyGen)
     ├── publish_service.py      # Publicacao multi-plataforma
     └── analytics_service.py    # Tracking, A/B e feedback loop
-```
-
-```
-terraform/                      # Infraestrutura AWS completa
-├── main.tf                     # Provider e tags globais
-├── vpc.tf                      # VPC, subnets, NAT gateway
-├── database.tf                 # RDS PostgreSQL
-├── redis.tf                    # ElastiCache Redis
-├── s3.tf                       # Bucket para videos
-├── ecr.tf                      # Container registry
-├── ecs.tf                      # ECS Fargate (worker + beat)
-├── iam.tf                      # Roles e policies
-├── secrets.tf                  # Secrets Manager
-├── eventbridge.tf              # Cron scheduling
-├── monitoring.tf               # CloudWatch alarmes (13) + log groups (4)
-├── variables.tf                # Variaveis configuráveis
-├── outputs.tf                  # Outputs uteis
-└── backend.tf                  # State remoto (S3)
 ```
 
 ---
@@ -207,32 +187,63 @@ PYTHONPATH=src ENV=test pytest tests/ -v
 
 ---
 
-## Deploy (AWS)
+## Deploy (Railway)
 
-### Infraestrutura via Terraform
+### Setup no Railway
 
-```bash
-cd terraform
-terraform init
-terraform plan -var="environment=production"
-terraform apply -var="environment=production"
-```
+1. Criar projeto no [Railway Dashboard](https://railway.app/dashboard)
+2. Adicionar **PostgreSQL** (1 clique)
+3. Adicionar **Redis** (1 clique)
+4. Adicionar **Storage Bucket** (1 clique, S3-compatible)
+5. Criar 3 services do mesmo repo: **worker**, **beat**, **dashboard**
+6. Criar 1 **cron job** para trigger do pipeline diario
+7. Configurar env vars (API keys, `DATABASE_URL` auto-gerado pelo Railway)
+8. Conectar repo GitHub (deploy automatico no push)
+
+### Env vars necessarias
+
+| Variavel | Descricao |
+|---|---|
+| `DATABASE_URL` | Auto-gerado pelo Railway PostgreSQL |
+| `REDIS_URL` | Auto-gerado pelo Railway Redis |
+| `S3_ENDPOINT_URL` | Endpoint do Railway Bucket |
+| `S3_BUCKET_NAME` | Nome do bucket |
+| `AWS_ACCESS_KEY_ID` | Access key do Railway Bucket |
+| `AWS_SECRET_ACCESS_KEY` | Secret key do Railway Bucket |
+| `HEYGEN_API_KEY` | Chave da API HeyGen |
+| `OPENAI_API_KEY` | Chave da API OpenAI |
+| `TIKTOK_*` | Credenciais TikTok |
+| `INSTAGRAM_*` | Credenciais Instagram |
+| `YOUTUBE_*` | Credenciais YouTube |
+| `ENV` | `production` |
 
 ### CI/CD via GitHub Actions
 
 O workflow `.github/workflows/deploy.yml` automatiza:
 
-1. **Test** — Roda pytest em cada push
-2. **Build** — Constroi imagem Docker e publica no ECR
-3. **Terraform** — Valida e aplica infraestrutura
-4. **Deploy** — Atualiza ECS service e aguarda estabilizacao
+1. **Lint** — Roda ruff check e format em cada push
+2. **Test** — Roda pytest com PostgreSQL e Redis
+3. **Deploy** — Executa `railway up` no push para main
+
+Para configurar, adicione o secret `RAILWAY_TOKEN` no GitHub:
+1. No Railway Dashboard, va em Settings > Tokens
+2. Crie um token de projeto
+3. No GitHub, va em Settings > Secrets > Actions > New secret
+4. Nome: `RAILWAY_TOKEN`, valor: o token gerado
+
+### Comandos de servico no Railway
+
+| Servico | Start Command |
+|---|---|
+| **Worker** | `celery -A app.celery_app worker --loglevel=info --concurrency=2` |
+| **Beat** | `celery -A app.celery_app beat --loglevel=info` |
+| **Dashboard** | `streamlit run dashboard/app.py --server.port=$PORT --server.address=0.0.0.0` |
 
 ### Observabilidade
 
-- **13 alarmes CloudWatch** — Cobertura completa: falhas de pipeline, rejeicoes, timeouts, fila, custos
-- **12 metricas custom** — Emitidas pelos servicos em producao
-- **4 log groups** — Worker, beat, application, ECS
-- **Health check** — Endpoint que valida DB + Redis + Celery
+- **Railway Logs** — stdout capturado automaticamente, metricas estruturadas
+- **Railway Alerts** — Email/webhook para falhas de servico
+- **Health check** — Endpoint `/health` que valida DB + Redis + Celery
 
 ---
 
@@ -245,7 +256,7 @@ O workflow `.github/workflows/deploy.yml` automatiza:
 | **Compliance** | Blocklist de termos proibidos + validacao LLM antes de gerar video |
 | **Budget cap** | Limite diario configuravel — pausa pipeline se exceder |
 | **Cooldown** | Espaco minimo entre publicacoes baseado no nivel de risco |
-| **Secrets** | API keys em AWS Secrets Manager, nunca em codigo |
+| **Secrets** | API keys em env vars do Railway, nunca em codigo |
 
 ---
 
@@ -266,8 +277,8 @@ O diretorio `docs/` contem 14 documentos detalhados cobrindo cada aspecto do sis
 | 09 | [Video](docs/09_AVATAR_E_GERACAO_DE_VIDEO.md) | HeyGen, avatar e custos |
 | 10 | [Publicacao](docs/10_PUBLICACAO_E_AGENDAMENTO.md) | APIs oficiais e agendamento |
 | 11 | [Tracking](docs/11_TRACKING_E_OTIMIZACAO.md) | Metricas e feedback loop |
-| 12 | [Infra & Deploy](docs/12_INFRA_CLOUD_DEPLOY.md) | AWS, Docker, CI/CD |
-| 13 | [Observabilidade](docs/13_OBSERVABILIDADE_E_RUNBOOK.md) | Alarmes, logs e runbooks |
+| 12 | [Infra & Deploy](docs/12_INFRA_CLOUD_DEPLOY.md) | Railway, Docker, CI/CD |
+| 13 | [Observabilidade](docs/13_OBSERVABILIDADE_E_RUNBOOK.md) | Logs, alertas e runbooks |
 | 14 | [Roadmap](docs/14_ROADMAP_E_BACKLOG.md) | 3 fases com backlog detalhado |
 
 ---
@@ -278,7 +289,7 @@ O diretorio `docs/` contem 14 documentos detalhados cobrindo cada aspecto do sis
 |---|---|---|
 | **Fase 1 — MVP** | Pipeline end-to-end com TikTok, Account Health Gate, HeyGen | Completo |
 | **Fase 2 — Automacao** | Multi-plataforma (IG/YT), compliance LLM, A/B testing, reaproveitamento de vencedores | Completo |
-| **Fase 3 — Escala** | YouTube Shorts, feedback loops, CloudWatch alarmes, runbooks, otimizacao S3 | Completo |
+| **Fase 3 — Escala** | YouTube Shorts, feedback loops, alarmes, runbooks, otimizacao S3 | Completo |
 | **Fase 4 — Dashboard** | Dashboard Streamlit com 6 paginas (overview, pipeline, performance, products, financeiro, health) | Completo |
 | **Futuro** | Outros idiomas, multiplos avatares, Grafana avancado | Backlog |
 
@@ -288,10 +299,10 @@ O diretorio `docs/` contem 14 documentos detalhados cobrindo cada aspecto do sis
 
 | Componente | Custo Mensal (estimado) |
 |---|---|
-| AWS (ECS + RDS + Redis + S3) | ~R$350-500 |
-| HeyGen (plano Creator) | ~R$120-250 |
-| OpenAI API (GPT-4o-mini) | ~R$30-60 |
-| **Total** | **~R$500-810/mes** |
+| Railway (PostgreSQL + Redis + Services + Bucket) | ~$40-55 |
+| HeyGen (plano Creator) | ~$120-250 |
+| OpenAI API (GPT-4o-mini) | ~$30-60 |
+| **Total** | **~$190-365/mes** |
 
 ---
 
@@ -302,5 +313,5 @@ Este projeto e de uso privado.
 ---
 
 <p align="center">
-  <sub>Construido com Python, Celery, Terraform e muita automacao.</sub>
+  <sub>Construido com Python, Celery, Railway e muita automacao.</sub>
 </p>

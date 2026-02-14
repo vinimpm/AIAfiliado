@@ -21,7 +21,4 @@ COPY alembic.ini /app/alembic.ini
 RUN useradd --create-home --shell /bin/bash appuser
 USER appuser
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:${PORT}/health || exit 1
-
 CMD ["celery", "-A", "app.celery_app", "worker", "--loglevel=info", "--concurrency=2"]

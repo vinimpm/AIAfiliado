@@ -17,8 +17,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src/ /app/src/
 COPY alembic/ /app/alembic/
 COPY alembic.ini /app/alembic.ini
+COPY entrypoint.sh /app/entrypoint.sh
+
+RUN chmod +x /app/entrypoint.sh
 
 RUN useradd --create-home --shell /bin/bash appuser
 USER appuser
 
+ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["celery", "-A", "app.celery_app", "worker", "--loglevel=info", "--concurrency=2"]

@@ -8,14 +8,6 @@ from dashboard.config import dash_settings
 from dashboard.pages import financeiro, health, overview, performance, pipeline, products
 from models.database import get_session_cm
 
-st.set_page_config(
-    page_title=dash_settings.PAGE_TITLE,
-    page_icon=dash_settings.PAGE_ICON,
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
-
 # --- Authentication Gate ---
 def _check_auth() -> bool:
     """Return True if the user is authenticated."""
@@ -24,8 +16,16 @@ def _check_auth() -> bool:
     return st.session_state.get("authenticated", False)
 
 
-def _show_login() -> None:
-    """Render the login form."""
+_authenticated = _check_auth()
+
+st.set_page_config(
+    page_title=dash_settings.PAGE_TITLE,
+    page_icon=dash_settings.PAGE_ICON,
+    layout="wide" if _authenticated else "centered",
+    initial_sidebar_state="expanded" if _authenticated else "collapsed",
+)
+
+if not _authenticated:
     st.title("Login")
     with st.form("login_form"):
         username = st.text_input("Usuario")
@@ -37,10 +37,6 @@ def _show_login() -> None:
                 st.rerun()
             else:
                 st.error("Usuario ou senha incorretos.")
-
-
-if not _check_auth():
-    _show_login()
     st.stop()
 
 # --- Sidebar Navigation ---

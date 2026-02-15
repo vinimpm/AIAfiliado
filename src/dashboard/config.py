@@ -8,6 +8,8 @@ class DashboardSettings(BaseSettings):
     PLOTLY_TEMPLATE: str = "plotly_dark"
     PAGE_TITLE: str = "AIAfiliado Dashboard"
     PAGE_ICON: str = "📊"
+    AUTH_USER: str = "admin"
+    AUTH_PASSWORD: str = ""
 
     model_config = {"env_prefix": "DASH_", "env_file": ".env", "env_file_encoding": "utf-8"}
 

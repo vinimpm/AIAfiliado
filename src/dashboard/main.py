@@ -15,6 +15,34 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+
+# --- Authentication Gate ---
+def _check_auth() -> bool:
+    """Return True if the user is authenticated."""
+    if not dash_settings.AUTH_PASSWORD:
+        return True
+    return st.session_state.get("authenticated", False)
+
+
+def _show_login() -> None:
+    """Render the login form."""
+    st.title("Login")
+    with st.form("login_form"):
+        username = st.text_input("Usuario")
+        password = st.text_input("Senha", type="password")
+        submitted = st.form_submit_button("Entrar")
+        if submitted:
+            if username == dash_settings.AUTH_USER and password == dash_settings.AUTH_PASSWORD:
+                st.session_state["authenticated"] = True
+                st.rerun()
+            else:
+                st.error("Usuario ou senha incorretos.")
+
+
+if not _check_auth():
+    _show_login()
+    st.stop()
+
 # --- Sidebar Navigation ---
 st.sidebar.title("AIAfiliado")
 st.sidebar.caption("Dashboard de Monitoramento")
@@ -33,6 +61,10 @@ selected = st.sidebar.radio("Navegacao", list(PAGES.keys()))
 st.sidebar.divider()
 st.sidebar.caption(f"Auto-refresh: {dash_settings.REFRESH_INTERVAL_SECONDS}s")
 st.sidebar.caption(f"Cache TTL: {dash_settings.CACHE_TTL_SECONDS}s")
+
+if st.sidebar.button("Sair"):
+    st.session_state["authenticated"] = False
+    st.rerun()
 
 # --- Auto-refresh ---
 st_autorefresh = None

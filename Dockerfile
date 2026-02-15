@@ -24,5 +24,8 @@ RUN chmod +x /app/entrypoint.sh
 RUN useradd --create-home --shell /bin/bash appuser
 USER appuser
 
+# Set working directory to src so Python finds modules directly
+WORKDIR /app/src
+
 ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["celery", "-A", "app.celery_app", "worker", "--loglevel=info", "--concurrency=2"]

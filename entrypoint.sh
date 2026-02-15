@@ -18,12 +18,14 @@ if [[ "$DATABASE_URL" == postgres://* ]]; then
     export DATABASE_URL="postgresql://${DATABASE_URL#postgres://}"
 fi
 
-# Debug: show connection target (hide password)
 echo "DATABASE_URL host: $(echo "$DATABASE_URL" | sed 's|.*@\(.*\)/.*|\1|')"
 echo "PYTHONPATH: $PYTHONPATH"
 
+# Run migrations from /app where alembic.ini lives
 echo "Running database migrations..."
-alembic upgrade head
+cd /app && alembic upgrade head
 echo "Migrations complete."
 
+# Return to /app/src for the application
+cd /app/src
 exec "$@"

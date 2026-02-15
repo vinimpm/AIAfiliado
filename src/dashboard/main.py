@@ -26,6 +26,10 @@ st.set_page_config(
 )
 
 if not _authenticated:
+    st.markdown(
+        "<style>[data-testid='stSidebar']{display:none}</style>",
+        unsafe_allow_html=True,
+    )
     st.title("Login")
     with st.form("login_form"):
         username = st.text_input("Usuario")

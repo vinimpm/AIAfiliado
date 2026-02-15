@@ -12,6 +12,9 @@ _SessionLocal = None
 def engine_factory(url: str | None = None):
     global _engine, _SessionLocal
     url = url or settings.DATABASE_URL
+    # Railway/Heroku use postgres:// but SQLAlchemy 2.0 requires postgresql://
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
     connect_args: dict = {}
     if settings.DATABASE_SSL:
         connect_args["sslmode"] = "require"

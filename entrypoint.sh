@@ -10,7 +10,13 @@ if [ -z "$DATABASE_URL" ]; then
     fi
 fi
 
-echo "DATABASE_URL is set: $([ -n "$DATABASE_URL" ] && echo 'yes' || echo 'NO - migrations will fail')"
+# Railway/Heroku use postgres:// but SQLAlchemy 2.0 requires postgresql://
+if [[ "$DATABASE_URL" == postgres://* ]]; then
+    export DATABASE_URL="postgresql://${DATABASE_URL#postgres://}"
+fi
+
+# Debug: show connection target (hide password)
+echo "DATABASE_URL host: $(echo "$DATABASE_URL" | sed 's|.*@\(.*\)/.*|\1|')"
 
 echo "Running database migrations..."
 alembic upgrade head

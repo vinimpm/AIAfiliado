@@ -27,6 +27,9 @@ target_metadata = Base.metadata
 # Override sqlalchemy.url from environment variable if available
 database_url = os.environ.get("DATABASE_URL")
 if database_url:
+    # Railway/Heroku use postgres:// but SQLAlchemy 2.0 requires postgresql://
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
     config.set_main_option("sqlalchemy.url", database_url)
 
 

@@ -18,8 +18,9 @@ COPY src/ /app/src/
 COPY alembic/ /app/alembic/
 COPY alembic.ini /app/alembic.ini
 COPY entrypoint.sh /app/entrypoint.sh
+COPY start-dashboard.sh /app/start-dashboard.sh
 
-RUN chmod +x /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh /app/start-dashboard.sh
 
 RUN useradd --create-home --shell /bin/bash appuser
 USER appuser

@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Ensure PYTHONPATH includes /app/src
+export PYTHONPATH="/app/src:${PYTHONPATH:-}"
+
 # Railway PostgreSQL may provide URL under different variable names
 if [ -z "$DATABASE_URL" ]; then
     if [ -n "$DATABASE_PUBLIC_URL" ]; then
@@ -17,6 +20,7 @@ fi
 
 # Debug: show connection target (hide password)
 echo "DATABASE_URL host: $(echo "$DATABASE_URL" | sed 's|.*@\(.*\)/.*|\1|')"
+echo "PYTHONPATH: $PYTHONPATH"
 
 echo "Running database migrations..."
 alembic upgrade head

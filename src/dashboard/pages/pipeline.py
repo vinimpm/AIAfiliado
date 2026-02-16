@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import uuid
+from datetime import UTC, datetime, timedelta
 
 import redis
 import streamlit as st
@@ -63,7 +64,14 @@ def render(session: Session):
     # --- Today's Run Status (prominent) ---
     run = queries.today_run(session)
 
-    if run and run["status"] == "running":
+    # Detect stale "running" status (stuck for more than 5 minutes)
+    is_stale = False
+    if run and run["status"] == "running" and run["started_at"]:
+        elapsed = datetime.now(UTC) - run["started_at"]
+        if elapsed > timedelta(minutes=5):
+            is_stale = True
+
+    if run and run["status"] == "running" and not is_stale:
         # Auto-refresh every 5s while pipeline is running
         try:
             from streamlit_autorefresh import st_autorefresh
@@ -79,7 +87,9 @@ def render(session: Session):
 
         col_s1, col_s2, col_s3, col_s4 = st.columns(4)
 
-        if run["status"] == "running":
+        if is_stale:
+            col_s1.metric("Status", "TRAVADO")
+        elif run["status"] == "running":
             col_s1.metric("Status", "EXECUTANDO...")
         elif run["status"] == "completed" and summary["videos_ready"] > 0:
             col_s1.metric("Status", "SUCESSO")
@@ -97,7 +107,7 @@ def render(session: Session):
         col_s4.metric("Cooldown", f"{run['cooldown_minutes']}min")
 
         # Show detailed results for non-running pipelines
-        if run["status"] != "running":
+        if run["status"] != "running" or is_stale:
             col_r1, col_r2, col_r3, col_r4 = st.columns(4)
             col_r1.metric("Produtos Ativos", summary["products_active"])
             col_r2.metric("Scripts Gerados", summary["scripts_generated"])
@@ -105,7 +115,14 @@ def render(session: Session):
             col_r4.metric("Videos Falhos", summary["videos_failed"])
 
         # Contextual messages
-        if run["status"] == "running":
+        if is_stale:
+            elapsed_min = int((datetime.now(UTC) - run["started_at"]).total_seconds() / 60)
+            st.error(
+                f"Pipeline travado ha {elapsed_min} minutos! "
+                f"O worker provavelmente reiniciou durante a execucao. "
+                f"Clique no botao abaixo para disparar novamente."
+            )
+        elif run["status"] == "running":
             st.info("Pipeline em execucao... A pagina atualiza automaticamente a cada 5 segundos.")
         elif run["status"] == "completed":
             if summary["videos_ready"] > 0:
@@ -138,10 +155,13 @@ def render(session: Session):
         st.info("Nenhuma execucao hoje.")
 
     # --- Trigger Button ---
-    can_trigger = not run or run["status"] in ("completed", "failed", "paused")
+    can_trigger = not run or run["status"] in ("completed", "failed", "paused") or is_stale
     if can_trigger:
-        if st.button("Disparar Pipeline Agora", type="primary"):
+        btn_label = "Disparar Pipeline Novamente" if is_stale else "Disparar Pipeline Agora"
+        if st.button(btn_label, type="primary"):
             try:
+                if is_stale:
+                    queries.mark_run_stale(session)
                 _send_pipeline_task()
                 st.success("Pipeline disparado! Aguarde alguns segundos e atualize a pagina.")
                 st.rerun()

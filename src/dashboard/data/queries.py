@@ -184,6 +184,15 @@ def today_pipeline_summary(session: Session) -> dict:
     }
 
 
+def mark_run_stale(session: Session) -> None:
+    """Mark today's stuck 'running' DailyRun as 'failed'."""
+    run = session.query(DailyRun).filter(DailyRun.run_date == date.today()).first()
+    if run and run.status == "running":
+        run.status = "failed"
+        run.finished_at = datetime.now(UTC)
+        session.commit()
+
+
 def daily_runs_table(session: Session, days: int = 30) -> pd.DataFrame:
     """All daily runs for the pipeline table."""
     cutoff = _cutoff(days).date()

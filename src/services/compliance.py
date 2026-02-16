@@ -121,12 +121,14 @@ ROTEIRO:
 REGRAS:
 1. Nao fazer alegacoes medicas (curar, tratar, prevenir doencas).
 2. Nao fazer promessas financeiras irreais (enriquecer, renda garantida).
-3. Nao usar falsa escassez (ultimas unidades, so hoje).
+3. Nao usar falsa escassez EXPLICITA (ex: "ultimas unidades", "so hoje", "vai acabar").
+   NOTA: Frases comuns como "aproveita", "nao perde", "vale a pena" NAO sao falsa escassez.
 4. Nao usar falso endosso (recomendado por medicos, celebridade usa).
 5. Nao fazer garantias absolutas (100% garantido, funciona para todos).
 6. Nao incluir links diretos em plataformas que proibem (TikTok, Instagram).
 7. O CTA deve ser compativel com a plataforma.
-8. O conteudo deve ser transparente sobre ser conteudo de afiliado.
+8. Transparencia: a caption deve conter "#publi", "#ad" ou mencao de afiliado.
+   Se a caption contiver "#publi" ou "#ad", esta regra esta CUMPRIDA.
 
 Responda com o seguinte JSON:
 {{

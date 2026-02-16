@@ -60,9 +60,11 @@ REGRAS:
 - O roteiro deve ser em portugues brasileiro informal e natural.
 - Conecte a trend ao produto de forma organica.
 - NAO faca alegacoes medicas, financeiras ou garantias absolutas.
-- NAO use falsa escassez ou falso endosso.
+- NAO use falsa escassez (ex: "ultimas unidades", "so hoje", "vai acabar", "oferta limitada").
+- NAO use falso endosso.
 - O tom deve ser autentico, como um amigo recomendando algo.
-- Inclua 3-5 hashtags relevantes na caption.
+- OBRIGATORIO: A caption DEVE incluir "#publi" ou "#ad" para transparencia de afiliado.
+- Inclua 3-5 hashtags relevantes na caption alem do #publi.
 - A duracao estimada deve ficar entre 20 e 45 segundos.
 
 Responda APENAS com o JSON, sem texto adicional.
@@ -87,8 +89,8 @@ VARIANT_MODIFIERS: dict[str, str] = {
         "ESTILO VARIANTE A:\n"
         "- Use um hook no formato de PERGUNTA que gere curiosidade.\n"
         "- Ex: 'Voce sabia que...?', 'Ja ouviu falar de...?'\n"
-        "- O CTA deve transmitir URGENCIA suave (sem falsa escassez).\n"
-        "- Ex: 'Aproveita enquanto esta disponivel', 'Nao deixa passar'"
+        "- O CTA deve ser um convite direto e amigavel.\n"
+        "- Ex: 'Da uma olhada, vale muito a pena', 'Confere la no link da bio'"
     ),
     "B": (
         "ESTILO VARIANTE B:\n"

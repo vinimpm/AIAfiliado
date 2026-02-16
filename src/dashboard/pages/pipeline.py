@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import streamlit as st
+from celery.result import AsyncResult
 from sqlalchemy.orm import Session
 
+from app.celery_app import celery
 from dashboard.components.charts import bar_chart, line_chart
 from dashboard.components.filters import date_range_filter
 from dashboard.data import queries
@@ -18,6 +20,38 @@ def _style_risk_level(val: str) -> str:
 
 def render(session: Session):
     st.header("Pipeline")
+
+    # --- Trigger Pipeline ---
+    col_trigger, col_status = st.columns([1, 2])
+    with col_trigger:
+        if st.button("Disparar Pipeline Agora", type="primary", use_container_width=True):
+            task = celery.send_task("services.orchestrator.trigger_daily_pipeline")
+            st.session_state["pipeline_task_id"] = task.id
+            st.success(f"Pipeline disparado! Task: {task.id[:8]}...")
+
+    with col_status:
+        task_id = st.session_state.get("pipeline_task_id")
+        if task_id:
+            result = AsyncResult(task_id, app=celery)
+            state = result.state
+            state_colors = {
+                "PENDING": ":orange[PENDENTE]",
+                "STARTED": ":blue[EXECUTANDO...]",
+                "SUCCESS": ":green[CONCLUIDO]",
+                "FAILURE": ":red[FALHOU]",
+            }
+            st.markdown(f"**Ultimo disparo:** {state_colors.get(state, state)}")
+            if state == "SUCCESS" and result.result:
+                r = result.result
+                st.caption(
+                    f"Videos: {r.get('videos_generated', 0)} | "
+                    f"Publicacoes: {r.get('publications_scheduled', 0)} | "
+                    f"Duracao: {r.get('duration_s', 0)}s"
+                )
+            elif state == "FAILURE":
+                st.caption(f"Erro: {result.info}")
+
+    st.divider()
 
     days = date_range_filter(key="pipeline_period")
 

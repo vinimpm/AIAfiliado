@@ -2,16 +2,74 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 import streamlit as st
 from sqlalchemy.orm import Session
 
 from dashboard.components.charts import bar_chart, pie_chart
 from dashboard.components.filters import platform_filter, status_filter
 from dashboard.data import queries
+from models.product import Product
+
+_PLATFORMS = ["amazon", "shopee", "hotmart", "monetizze", "tiktok_shop"]
+_CATEGORIES = [
+    "beauty",
+    "skincare",
+    "fashion",
+    "accessories",
+    "home",
+    "kitchen",
+    "tech_accessories",
+    "fitness",
+    "health",
+    "education",
+    "pet",
+]
 
 
 def render(session: Session):
     st.header("Produtos")
+
+    # --- Add Product Form ---
+    with st.expander("Adicionar Produto Manualmente", expanded=False):
+        with st.form("add_product_form", clear_on_submit=True):
+            st.caption("Preencha os dados do produto para adicionar ao pipeline.")
+
+            col_a, col_b = st.columns(2)
+            with col_a:
+                title = st.text_input("Nome do Produto *")
+                price = st.number_input("Preco (R$) *", min_value=0.01, value=49.90, step=0.01)
+                commission = st.number_input("Comissao (R$) *", min_value=0.01, value=5.00, step=0.01)
+
+            with col_b:
+                source_platform = st.selectbox("Plataforma *", options=_PLATFORMS)
+                category = st.selectbox("Categoria *", options=_CATEGORIES)
+                affiliate_url = st.text_input("Link de Afiliado *")
+
+            submitted = st.form_submit_button("Adicionar Produto", use_container_width=True)
+
+            if submitted:
+                if not title or not affiliate_url:
+                    st.error("Preencha todos os campos obrigatorios.")
+                else:
+                    product = Product(
+                        source="manual",
+                        source_platform=source_platform,
+                        title=title.strip(),
+                        price=price,
+                        commission=commission,
+                        affiliate_url=affiliate_url.strip(),
+                        category=category,
+                        status="validated",
+                        is_active=True,
+                        validated_at=datetime.now(UTC),
+                    )
+                    session.add(product)
+                    session.commit()
+                    st.success(f"Produto '{title}' adicionado com sucesso!")
+
+    st.divider()
 
     # --- Filters ---
     col_f1, col_f2 = st.columns(2)

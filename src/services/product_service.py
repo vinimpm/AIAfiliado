@@ -105,6 +105,61 @@ def get_active_winners(self) -> list[dict]:
 
 
 # ===========================================================================
+# 1b. get_curated_products (manual / no sales yet)
+# ===========================================================================
+
+
+def get_curated_products() -> list[dict]:
+    """Return active, validated products that have no sales yet.
+
+    These are manually curated products (or API-sourced products that haven't
+    been promoted yet).  They are returned ordered by creation date descending
+    so that the most recently added products are processed first.
+    """
+    logger.info("get_curated_products.start")
+
+    try:
+        with get_session_cm() as session:
+            # Get products without any scripts yet (never processed)
+            products_with_scripts = select(Script.product_id).distinct()
+
+            stmt = (
+                select(Product)
+                .where(
+                    and_(
+                        Product.is_active.is_(True),
+                        Product.status == "validated",
+                        Product.id.notin_(products_with_scripts),
+                    )
+                )
+                .order_by(Product.created_at.desc())
+            )
+
+            products = session.execute(stmt).scalars().all()
+
+            result = [
+                {
+                    "id": p.id,
+                    "title": p.title,
+                    "source_platform": p.source_platform,
+                    "price": float(p.price),
+                    "commission": float(p.commission),
+                    "affiliate_url": p.affiliate_url,
+                    "category": p.category,
+                    "score": float(p.score) if p.score is not None else None,
+                }
+                for p in products
+            ]
+
+        logger.info("get_curated_products.done", count=len(result))
+        return result
+
+    except Exception:
+        logger.exception("get_curated_products.error")
+        return []
+
+
+# ===========================================================================
 # 2. find_new_products
 # ===========================================================================
 

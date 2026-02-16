@@ -30,7 +30,12 @@ from models.daily_run import DailyRun
 from models.database import get_session_cm
 from models.video import Video
 from services.account_health import evaluate_account_health
-from services.product_service import check_weekly_limit, find_new_products, get_active_winners
+from services.product_service import (
+    check_weekly_limit,
+    find_new_products,
+    get_active_winners,
+    get_curated_products,
+)
 from services.publish_service import schedule_publication
 from services.script_service import generate_scripts
 from services.trend_engine import collect_trends
@@ -214,6 +219,22 @@ def trigger_daily_pipeline(self) -> dict:
         except Exception:
             logger.exception("pipeline.step3.trends_products_error")
             # Continue -- we can still process winners
+
+        # ---- 3b: Add curated (manual) products ----
+        try:
+            curated = get_curated_products()
+            if curated:
+                existing_ids = {p["id"] for p in new_products}
+                for p in curated:
+                    if p["id"] not in existing_ids:
+                        new_products.append(p)
+                logger.info(
+                    "pipeline.step3.curated_products",
+                    curated_count=len(curated),
+                    total_new_products=len(new_products),
+                )
+        except Exception:
+            logger.exception("pipeline.step3.curated_products_error")
 
         logger.info(
             "pipeline.step3.done",

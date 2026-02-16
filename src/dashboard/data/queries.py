@@ -599,6 +599,71 @@ def posts_allowed_vs_used(session: Session, days: int = 30) -> pd.DataFrame:
     return pd.DataFrame(result)
 
 
+# ---------------------------------------------------------------------------
+# Videos
+# ---------------------------------------------------------------------------
+
+
+def videos_table(
+    session: Session,
+    status: str | None = None,
+    days: int = 30,
+) -> pd.DataFrame:
+    """All videos with product title and publication status."""
+    cutoff = _cutoff(days)
+    q = (
+        session.query(
+            Video.id,
+            Product.title.label("product"),
+            Script.hook,
+            Video.status,
+            Video.duration,
+            Video.cost_usd,
+            Video.s3_url,
+            Video.created_at,
+        )
+        .join(Script, Script.id == Video.script_id)
+        .join(Product, Product.id == Script.product_id)
+        .filter(Video.created_at >= cutoff)
+    )
+    if status:
+        q = q.filter(Video.status == status)
+    rows = q.order_by(Video.created_at.desc()).all()
+    cols = ["id", "product", "hook", "status", "duration", "cost_usd", "s3_url", "created_at"]
+    if not rows:
+        return pd.DataFrame(columns=cols)
+    return pd.DataFrame(rows, columns=cols)
+
+
+def video_publication_status(session: Session, video_id: int) -> str:
+    """Check if a video has been published."""
+    pub = (
+        session.query(Publication.status)
+        .filter(Publication.video_id == video_id)
+        .first()
+    )
+    if not pub:
+        return "nao publicado"
+    return pub[0].lower()
+
+
+def videos_by_status(session: Session, days: int = 30) -> pd.DataFrame:
+    """Count videos by status for pie chart."""
+    cutoff = _cutoff(days)
+    rows = (
+        session.query(
+            Video.status,
+            func.count(Video.id).label("count"),
+        )
+        .filter(Video.created_at >= cutoff)
+        .group_by(Video.status)
+        .all()
+    )
+    if not rows:
+        return pd.DataFrame(columns=["status", "count"])
+    return pd.DataFrame(rows, columns=["status", "count"])
+
+
 def cooldown_trend(session: Session, days: int = 30) -> pd.DataFrame:
     """Cooldown minutes over time."""
     cutoff = _cutoff(days).date()

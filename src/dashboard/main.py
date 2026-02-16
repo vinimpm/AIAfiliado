@@ -6,7 +6,7 @@ import streamlit as st
 
 from app.runtime_settings import get_auto_publish, set_auto_publish
 from dashboard.config import dash_settings
-from dashboard.pages import financeiro, health, overview, performance, pipeline, products
+from dashboard.pages import financeiro, health, overview, performance, pipeline, products, videos
 from models.database import get_session_cm
 
 # --- Authentication Gate ---
@@ -51,6 +51,7 @@ st.sidebar.caption("Dashboard de Monitoramento")
 PAGES = {
     "Overview": overview,
     "Pipeline": pipeline,
+    "Videos": videos,
     "Performance": performance,
     "Produtos": products,
     "Financeiro": financeiro,

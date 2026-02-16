@@ -22,11 +22,11 @@ def get_auto_publish() -> bool:
         r = _get_redis()
         val = r.get(_REDIS_KEY_AUTO_PUBLISH)
         if val is None:
-            return True  # default: enabled
+            return False  # default: disabled (manual publishing)
         return val == "1"
     except Exception:
         logger.warning("runtime_settings.redis_error", key=_REDIS_KEY_AUTO_PUBLISH, exc_info=True)
-        return True  # fail-open: publish if Redis is unreachable
+        return False  # fail-safe: don't publish if Redis is unreachable
 
 
 def set_auto_publish(enabled: bool) -> None:

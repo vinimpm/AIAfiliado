@@ -110,7 +110,7 @@ def get_active_winners(self) -> list[dict]:
 
 
 def get_curated_products() -> list[dict]:
-    """Return active, validated products that have no sales yet.
+    """Return active, validated products that have no scripts yet.
 
     These are manually curated products (or API-sourced products that haven't
     been promoted yet).  They are returned ordered by creation date descending
@@ -120,8 +120,21 @@ def get_curated_products() -> list[dict]:
 
     try:
         with get_session_cm() as session:
-            # Get products without any scripts yet (never processed)
-            products_with_scripts = select(Script.product_id).distinct()
+            # Debug: count all active validated products
+            total_active = (
+                session.query(func.count(Product.id))
+                .filter(Product.is_active.is_(True), Product.status == "validated")
+                .scalar()
+                or 0
+            )
+            logger.info("get_curated_products.total_active_validated", count=total_active)
+
+            # Get products that have NO scripts yet (using NOT EXISTS)
+            has_script = (
+                select(Script.id)
+                .where(Script.product_id == Product.id)
+                .exists()
+            )
 
             stmt = (
                 select(Product)
@@ -129,7 +142,7 @@ def get_curated_products() -> list[dict]:
                     and_(
                         Product.is_active.is_(True),
                         Product.status == "validated",
-                        Product.id.notin_(products_with_scripts),
+                        ~has_script,
                     )
                 )
                 .order_by(Product.created_at.desc())

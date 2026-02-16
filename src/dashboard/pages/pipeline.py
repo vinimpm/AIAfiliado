@@ -74,24 +74,62 @@ def render(session: Session):
 
     # --- Status Card ---
     if run:
-        status_map = {
-            "running": ("EXECUTANDO...", "info"),
-            "completed": ("CONCLUIDO", "success"),
-            "failed": ("FALHOU", "error"),
-            "paused": ("PAUSADO", "warning"),
-        }
-        label, msg_type = status_map.get(run["status"], (run["status"], "info"))
+        # Get detailed summary for completed runs
+        summary = queries.today_pipeline_summary(session)
 
         col_s1, col_s2, col_s3, col_s4 = st.columns(4)
-        col_s1.metric("Status", label)
+
+        if run["status"] == "running":
+            col_s1.metric("Status", "EXECUTANDO...")
+        elif run["status"] == "completed" and summary["videos_ready"] > 0:
+            col_s1.metric("Status", "SUCESSO")
+        elif run["status"] == "completed" and summary["videos_ready"] == 0:
+            col_s1.metric("Status", "SEM VIDEOS")
+        elif run["status"] == "failed":
+            col_s1.metric("Status", "FALHOU")
+        elif run["status"] == "paused":
+            col_s1.metric("Status", "PAUSADO")
+        else:
+            col_s1.metric("Status", run["status"].upper())
+
         col_s2.metric("Risk Level", run["risk_level"])
         col_s3.metric("Posts Permitidos", run["posts_allowed"])
         col_s4.metric("Cooldown", f"{run['cooldown_minutes']}min")
 
+        # Show detailed results for non-running pipelines
+        if run["status"] != "running":
+            col_r1, col_r2, col_r3, col_r4 = st.columns(4)
+            col_r1.metric("Produtos Ativos", summary["products_active"])
+            col_r2.metric("Scripts Gerados", summary["scripts_generated"])
+            col_r3.metric("Videos Prontos", summary["videos_ready"])
+            col_r4.metric("Videos Falhos", summary["videos_failed"])
+
+        # Contextual messages
         if run["status"] == "running":
             st.info("Pipeline em execucao... A pagina atualiza automaticamente a cada 5 segundos.")
         elif run["status"] == "completed":
-            st.success("Pipeline concluido! Confira os videos na pagina Videos.")
+            if summary["videos_ready"] > 0:
+                st.success(
+                    f"{summary['videos_ready']} video(s) gerado(s)! "
+                    f"Confira na pagina Videos."
+                )
+            elif summary["scripts_generated"] > 0 and summary["videos_ready"] == 0:
+                st.warning(
+                    f"{summary['scripts_generated']} script(s) gerado(s), mas nenhum video. "
+                    f"Possivel erro na geracao de video (HeyGen). Verifique os logs."
+                )
+            elif summary["products_active"] > 0 and summary["scripts_generated"] == 0:
+                st.warning(
+                    f"{summary['products_active']} produto(s) ativo(s), mas nenhum script gerado. "
+                    f"Possivel rejeicao pelo compliance ou erro no LLM. Verifique os logs."
+                )
+            elif summary["products_active"] == 0:
+                st.error(
+                    "Nenhum produto ativo encontrado! "
+                    "Adicione produtos na pagina Produtos e reative se necessario."
+                )
+            else:
+                st.warning("Pipeline concluiu sem gerar conteudo. Verifique os logs.")
         elif run["status"] == "failed":
             st.error("Pipeline falhou. Verifique os logs no Railway.")
         elif run["status"] == "paused":

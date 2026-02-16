@@ -136,6 +136,54 @@ def alerts(session: Session) -> list[dict]:
 # ---------------------------------------------------------------------------
 
 
+def today_pipeline_summary(session: Session) -> dict:
+    """Get a detailed summary of today's pipeline execution."""
+    today_start = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
+
+    products_active = (
+        session.query(func.count(Product.id))
+        .filter(Product.is_active.is_(True), Product.status == "validated")
+        .scalar()
+        or 0
+    )
+
+    scripts_today = (
+        session.query(func.count(Script.id))
+        .filter(Script.created_at >= today_start)
+        .scalar()
+        or 0
+    )
+
+    videos_today = (
+        session.query(func.count(Video.id))
+        .filter(Video.created_at >= today_start)
+        .scalar()
+        or 0
+    )
+
+    videos_ready = (
+        session.query(func.count(Video.id))
+        .filter(Video.created_at >= today_start, Video.status == "ready")
+        .scalar()
+        or 0
+    )
+
+    videos_failed = (
+        session.query(func.count(Video.id))
+        .filter(Video.created_at >= today_start, Video.status == "failed")
+        .scalar()
+        or 0
+    )
+
+    return {
+        "products_active": int(products_active),
+        "scripts_generated": int(scripts_today),
+        "videos_total": int(videos_today),
+        "videos_ready": int(videos_ready),
+        "videos_failed": int(videos_failed),
+    }
+
+
 def daily_runs_table(session: Session, days: int = 30) -> pd.DataFrame:
     """All daily runs for the pipeline table."""
     cutoff = _cutoff(days).date()

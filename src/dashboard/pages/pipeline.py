@@ -68,7 +68,7 @@ def render(session: Session):
     is_stale = False
     if run and run["status"] == "running" and run["started_at"]:
         elapsed = datetime.now(UTC) - run["started_at"]
-        if elapsed > timedelta(minutes=5):
+        if elapsed > timedelta(minutes=25):
             is_stale = True
 
     if run and run["status"] == "running" and not is_stale:

@@ -368,8 +368,8 @@ def _build_heygen_payload(script: Script, variation: dict) -> dict:
             }
         ],
         "dimension": {
-            "width": 720,
-            "height": 1280,
+            "width": settings.HEYGEN_VIDEO_WIDTH,
+            "height": settings.HEYGEN_VIDEO_HEIGHT,
         },
         "aspect_ratio": "9:16",
         "test": settings.ENV != "production",

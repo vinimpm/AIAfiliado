@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     HEYGEN_AVATAR_ID: str = ""
     HEYGEN_VOICE_ID: str = "pt_br_female_01"
     HEYGEN_VOICE_SPEED: float = 1.1
+    HEYGEN_VIDEO_WIDTH: int = 720
+    HEYGEN_VIDEO_HEIGHT: int = 1280
     HEYGEN_BACKGROUND_COLORS: list[str] = ["#FFFFFF", "#F5F5DC", "#E8E8E8", "#FFF0F5"]
 
     # --- LLM ---

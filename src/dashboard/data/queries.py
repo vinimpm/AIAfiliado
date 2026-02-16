@@ -566,6 +566,8 @@ def daily_cost_revenue(session: Session, days: int = 30) -> pd.DataFrame:
         return pd.DataFrame(columns=["day", "cost", "revenue"])
 
     merged = pd.merge(cost_df, rev_df, on="day", how="outer").fillna(0).sort_values("day")
+    merged["cost"] = merged["cost"].astype(float)
+    merged["revenue"] = merged["revenue"].astype(float)
     return merged
 
 

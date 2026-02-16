@@ -114,7 +114,7 @@ VARIANT_MODIFIERS: dict[str, str] = {
 def generate_scripts(
     self,
     product_id: int,
-    trend_id: int,
+    trend_id: int | None,
     platform: str,
     variant_count: int = 2,
 ) -> list[dict]:
@@ -125,7 +125,9 @@ def generate_scripts(
     product_id:
         The product ID to generate scripts for.
     trend_id:
-        The trend ID to connect the scripts to.
+        The trend ID to connect the scripts to.  Can be ``None`` for
+        manually curated products (scripts are generated based on the
+        product category alone).
     platform:
         Target platform (``tiktok``, ``instagram``, ``youtube``).
     variant_count:
@@ -161,14 +163,15 @@ def generate_scripts(
                 )
                 return []
 
-            trend = session.execute(select(Trend).where(Trend.id == trend_id)).scalar_one_or_none()
+            trend = None
+            if trend_id is not None:
+                trend = session.execute(
+                    select(Trend).where(Trend.id == trend_id)
+                ).scalar_one_or_none()
 
-            if trend is None:
-                logger.error(
-                    "generate_scripts.trend_not_found",
-                    trend_id=trend_id,
-                )
-                return []
+            # Derive trend name/category — use product info as fallback
+            trend_name = trend.name if trend else (product.category or product.title)
+            trend_category = trend.category if trend else (product.category or "geral")
 
             # Load recent scripts for similarity comparison
             recent_scripts = _load_recent_scripts(session, platform)
@@ -184,8 +187,8 @@ def generate_scripts(
                 # Build the prompt
                 prompt = SCRIPT_GENERATION_PROMPT.format(
                     platform=platform,
-                    trend_name=trend.name,
-                    trend_category=trend.category or "geral",
+                    trend_name=trend_name,
+                    trend_category=trend_category,
                     product_title=product.title,
                     product_price=f"{float(product.price):.2f}",
                     cta_instruction=CTA_INSTRUCTIONS.get(platform, "link na bio"),

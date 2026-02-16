@@ -1086,6 +1086,11 @@ def retire_stale_products() -> int:
             )
 
             for product in active_products:
+                # Grace period: don't retire products created recently
+                # (allows manually added products time to enter the pipeline)
+                if product.created_at and product.created_at >= cutoff:
+                    continue
+
                 # Get all publication IDs for this product
                 pub_ids = (
                     session.execute(

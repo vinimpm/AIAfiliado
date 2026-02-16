@@ -2,14 +2,53 @@
 
 from __future__ import annotations
 
+import json
+import uuid
+
+import redis
 import streamlit as st
-from celery.result import AsyncResult
 from sqlalchemy.orm import Session
 
-from app.celery_app import celery
+from app.config import settings
 from dashboard.components.charts import bar_chart, line_chart
 from dashboard.components.filters import date_range_filter
 from dashboard.data import queries
+
+
+def _send_pipeline_task() -> str:
+    """Send the pipeline task directly via Redis (avoids result backend issues)."""
+    task_id = str(uuid.uuid4())
+    body = json.dumps({
+        "id": task_id,
+        "task": "services.orchestrator.trigger_daily_pipeline",
+        "args": [],
+        "kwargs": {},
+        "retries": 0,
+    })
+    headers = {
+        "lang": "py",
+        "task": "services.orchestrator.trigger_daily_pipeline",
+        "id": task_id,
+        "root_id": task_id,
+        "argsrepr": "()",
+        "kwargsrepr": "{}",
+    }
+    message = json.dumps({
+        "body": body,
+        "content-encoding": "utf-8",
+        "content-type": "application/json",
+        "headers": headers,
+        "properties": {
+            "correlation_id": task_id,
+            "delivery_mode": 2,
+            "delivery_tag": str(uuid.uuid4()),
+            "body_encoding": "utf-8",
+            "delivery_info": {"exchange": "", "routing_key": "celery"},
+        },
+    })
+    r = redis.from_url(settings.REDIS_URL, socket_connect_timeout=5)
+    r.lpush("celery", message)
+    return task_id
 
 
 def _style_risk_level(val: str) -> str:
@@ -25,31 +64,30 @@ def render(session: Session):
     col_trigger, col_status = st.columns([1, 2])
     with col_trigger:
         if st.button("Disparar Pipeline Agora", type="primary", use_container_width=True):
-            task = celery.send_task("services.orchestrator.trigger_daily_pipeline")
-            st.session_state["pipeline_task_id"] = task.id
-            st.success(f"Pipeline disparado! Task: {task.id[:8]}...")
+            try:
+                task_id = _send_pipeline_task()
+                st.success(f"Pipeline disparado! Acompanhe o status abaixo.")
+            except Exception as e:
+                st.error(f"Erro ao disparar: {e}")
 
     with col_status:
-        task_id = st.session_state.get("pipeline_task_id")
-        if task_id:
-            result = AsyncResult(task_id, app=celery)
-            state = result.state
-            state_colors = {
-                "PENDING": ":orange[PENDENTE]",
-                "STARTED": ":blue[EXECUTANDO...]",
-                "SUCCESS": ":green[CONCLUIDO]",
-                "FAILURE": ":red[FALHOU]",
+        run = queries.today_run(session)
+        if run:
+            status_colors = {
+                "running": ":blue[EXECUTANDO...]",
+                "completed": ":green[CONCLUIDO]",
+                "failed": ":red[FALHOU]",
+                "paused": ":orange[PAUSADO]",
             }
-            st.markdown(f"**Ultimo disparo:** {state_colors.get(state, state)}")
-            if state == "SUCCESS" and result.result:
-                r = result.result
-                st.caption(
-                    f"Videos: {r.get('videos_generated', 0)} | "
-                    f"Publicacoes: {r.get('publications_scheduled', 0)} | "
-                    f"Duracao: {r.get('duration_s', 0)}s"
-                )
-            elif state == "FAILURE":
-                st.caption(f"Erro: {result.info}")
+            sc = status_colors.get(run["status"], run["status"])
+            st.markdown(f"**Pipeline Hoje:** {sc}")
+            st.caption(
+                f"Risk: {run['risk_level']} | "
+                f"Posts: {run['posts_allowed']} | "
+                f"Cooldown: {run['cooldown_minutes']}min"
+            )
+        else:
+            st.info("Nenhuma execucao hoje. Clique no botao para disparar.")
 
     st.divider()
 

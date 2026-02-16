@@ -689,11 +689,20 @@ def check_weekly_limit(product_id: int) -> bool:
     try:
         with get_session_cm() as session:
             count = session.execute(
-                select(func.count(Script.id)).where(
+                select(func.count(Script.id))
+                .where(
                     and_(
                         Script.product_id == product_id,
                         Script.created_at >= week_ago,
                     )
+                )
+                .where(
+                    select(Video.id)
+                    .where(
+                        Video.script_id == Script.id,
+                        Video.status == "ready",
+                    )
+                    .exists()
                 )
             ).scalar_one()
 

@@ -60,34 +60,57 @@ def _style_risk_level(val: str) -> str:
 def render(session: Session):
     st.header("Pipeline")
 
-    # --- Trigger Pipeline ---
-    col_trigger, col_status = st.columns([1, 2])
-    with col_trigger:
-        if st.button("Disparar Pipeline Agora", type="primary", use_container_width=True):
+    # --- Today's Run Status (prominent) ---
+    run = queries.today_run(session)
+
+    if run and run["status"] == "running":
+        # Auto-refresh every 5s while pipeline is running
+        try:
+            from streamlit_autorefresh import st_autorefresh
+
+            st_autorefresh(interval=5000, key="pipeline_refresh")
+        except ImportError:
+            st.caption("Atualize a pagina para ver o progresso.")
+
+    # --- Status Card ---
+    if run:
+        status_map = {
+            "running": ("EXECUTANDO...", "info"),
+            "completed": ("CONCLUIDO", "success"),
+            "failed": ("FALHOU", "error"),
+            "paused": ("PAUSADO", "warning"),
+        }
+        label, msg_type = status_map.get(run["status"], (run["status"], "info"))
+
+        col_s1, col_s2, col_s3, col_s4 = st.columns(4)
+        col_s1.metric("Status", label)
+        col_s2.metric("Risk Level", run["risk_level"])
+        col_s3.metric("Posts Permitidos", run["posts_allowed"])
+        col_s4.metric("Cooldown", f"{run['cooldown_minutes']}min")
+
+        if run["status"] == "running":
+            st.info("Pipeline em execucao... A pagina atualiza automaticamente a cada 5 segundos.")
+        elif run["status"] == "completed":
+            st.success("Pipeline concluido! Confira os videos na pagina Videos.")
+        elif run["status"] == "failed":
+            st.error("Pipeline falhou. Verifique os logs no Railway.")
+        elif run["status"] == "paused":
+            st.warning("Pipeline pausado devido a risco alto ou zero posts permitidos.")
+    else:
+        st.info("Nenhuma execucao hoje.")
+
+    # --- Trigger Button ---
+    can_trigger = not run or run["status"] in ("completed", "failed", "paused")
+    if can_trigger:
+        if st.button("Disparar Pipeline Agora", type="primary"):
             try:
-                task_id = _send_pipeline_task()
-                st.success(f"Pipeline disparado! Acompanhe o status abaixo.")
+                _send_pipeline_task()
+                st.success("Pipeline disparado! Aguarde alguns segundos e atualize a pagina.")
+                st.rerun()
             except Exception as e:
                 st.error(f"Erro ao disparar: {e}")
-
-    with col_status:
-        run = queries.today_run(session)
-        if run:
-            status_colors = {
-                "running": ":blue[EXECUTANDO...]",
-                "completed": ":green[CONCLUIDO]",
-                "failed": ":red[FALHOU]",
-                "paused": ":orange[PAUSADO]",
-            }
-            sc = status_colors.get(run["status"], run["status"])
-            st.markdown(f"**Pipeline Hoje:** {sc}")
-            st.caption(
-                f"Risk: {run['risk_level']} | "
-                f"Posts: {run['posts_allowed']} | "
-                f"Cooldown: {run['cooldown_minutes']}min"
-            )
-        else:
-            st.info("Nenhuma execucao hoje. Clique no botao para disparar.")
+    elif run and run["status"] == "running":
+        st.button("Pipeline em execucao...", disabled=True)
 
     st.divider()
 

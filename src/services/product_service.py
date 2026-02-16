@@ -32,6 +32,7 @@ from models.database import get_session_cm
 from models.product import Product
 from models.script import Script
 from models.trend import Trend
+from models.video import Video
 
 logger = get_logger(service="product_service")
 
@@ -129,10 +130,14 @@ def get_curated_products() -> list[dict]:
             )
             logger.info("get_curated_products.total_active_validated", count=total_active)
 
-            # Get products that have NO scripts yet (using NOT EXISTS)
-            has_script = (
+            # Get products that have NO successful video yet (using NOT EXISTS)
+            has_ready_video = (
                 select(Script.id)
-                .where(Script.product_id == Product.id)
+                .join(Video, Video.script_id == Script.id)
+                .where(
+                    Script.product_id == Product.id,
+                    Video.status == "ready",
+                )
                 .exists()
             )
 
@@ -142,7 +147,7 @@ def get_curated_products() -> list[dict]:
                     and_(
                         Product.is_active.is_(True),
                         Product.status == "validated",
-                        ~has_script,
+                        ~has_ready_video,
                     )
                 )
                 .order_by(Product.created_at.desc())

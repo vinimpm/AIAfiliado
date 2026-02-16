@@ -299,6 +299,15 @@ def trigger_daily_pipeline(self) -> dict:
 
                     script_id = script["id"]
 
+                    if not settings.HEYGEN_API_ENABLED:
+                        logger.info(
+                            "pipeline.step4.heygen_api_disabled",
+                            script_id=script_id,
+                            phase="winner",
+                        )
+                        slots_used += 1
+                        continue
+
                     try:
                         video_start = time.monotonic()
                         video_result: dict = generate_video(script_id)
@@ -426,6 +435,15 @@ def trigger_daily_pipeline(self) -> dict:
                         break
 
                     script_id = script["id"]
+
+                    if not settings.HEYGEN_API_ENABLED:
+                        logger.info(
+                            "pipeline.step4.heygen_api_disabled",
+                            script_id=script_id,
+                            phase="new_product",
+                        )
+                        slots_used += 1
+                        continue
 
                     try:
                         video_start = time.monotonic()

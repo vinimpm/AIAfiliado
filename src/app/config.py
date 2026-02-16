@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     HEYGEN_VIDEO_WIDTH: int = 720
     HEYGEN_VIDEO_HEIGHT: int = 1280
     HEYGEN_BACKGROUND_COLORS: list[str] = ["#FFFFFF", "#F5F5DC", "#E8E8E8", "#FFF0F5"]
+    HEYGEN_API_ENABLED: bool = False
 
     # --- LLM ---
     OPENAI_API_KEY: str = ""

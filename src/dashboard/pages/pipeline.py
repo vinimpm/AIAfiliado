@@ -131,10 +131,16 @@ def render(session: Session):
                     f"Confira na pagina Videos."
                 )
             elif summary["scripts_generated"] > 0 and summary["videos_ready"] == 0:
-                st.warning(
-                    f"{summary['scripts_generated']} script(s) gerado(s), mas nenhum video. "
-                    f"Possivel erro na geracao de video (HeyGen). Verifique os logs."
-                )
+                if not settings.HEYGEN_API_ENABLED:
+                    st.success(
+                        f"{summary['scripts_generated']} script(s) gerado(s)! "
+                        f"Acesse a pagina Videos para copiar o roteiro e criar no HeyGen."
+                    )
+                else:
+                    st.warning(
+                        f"{summary['scripts_generated']} script(s) gerado(s), mas nenhum video. "
+                        f"Possivel erro na geracao de video (HeyGen). Verifique os logs."
+                    )
             elif summary["products_active"] > 0 and summary["scripts_generated"] == 0:
                 st.warning(
                     f"{summary['products_active']} produto(s) ativo(s), mas nenhum script gerado. "

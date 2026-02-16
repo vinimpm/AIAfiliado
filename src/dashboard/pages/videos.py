@@ -1,4 +1,4 @@
-"""Videos page — list generated videos with download links."""
+"""Videos page — list generated videos, scripts pending manual creation."""
 
 from __future__ import annotations
 
@@ -55,6 +55,50 @@ def _generate_download_url(s3_url: str) -> str | None:
 
 def render(session: Session):
     st.header("Videos")
+
+    # --- Scripts Pending Manual Video Creation ---
+    pending_scripts = queries.scripts_pending_video(session)
+
+    if pending_scripts:
+        st.subheader(f"Scripts Aguardando Video ({len(pending_scripts)})")
+        st.caption(
+            "Copie o texto abaixo e crie o video manualmente no HeyGen. "
+            "O pipeline gerou o roteiro mas a API do HeyGen esta desativada."
+        )
+
+        for script in pending_scripts:
+            full_text = f"{script['hook']}\n\n{script['body']}\n\n{script['cta']}"
+
+            with st.container(border=True):
+                col_info, col_actions = st.columns([4, 1])
+
+                with col_info:
+                    st.markdown(
+                        f"**Script #{script['id']}** — {script['product_title']} "
+                        f"(Variante {script['variant']})"
+                    )
+                    st.caption(
+                        f"Plataforma: {script['platform']} | "
+                        f"Criado em: {script['created_at'].strftime('%d/%m %H:%M') if script['created_at'] else '-'}"
+                    )
+
+                with col_actions:
+                    st.link_button(
+                        "Abrir HeyGen",
+                        "https://app.heygen.com/create-v3/instant_avatar",
+                        use_container_width=True,
+                    )
+
+                # Narration text
+                st.markdown("**Texto para narrar (cole no HeyGen):**")
+                st.code(full_text, language=None)
+
+                # Caption
+                if script["caption"]:
+                    st.markdown("**Caption (para postar na rede social):**")
+                    st.code(script["caption"], language=None)
+
+        st.divider()
 
     # --- Filters ---
     col_f1, col_f2 = st.columns(2)

@@ -663,6 +663,51 @@ def posts_allowed_vs_used(session: Session, days: int = 30) -> pd.DataFrame:
 # ---------------------------------------------------------------------------
 
 
+def scripts_pending_video(session: Session) -> list[dict]:
+    """Scripts approved but without a video (for manual HeyGen creation)."""
+    from sqlalchemy import not_
+
+    stmt = (
+        session.query(
+            Script.id,
+            Script.hook,
+            Script.body,
+            Script.cta,
+            Script.caption,
+            Script.variant,
+            Script.platform,
+            Script.created_at,
+            Product.title.label("product_title"),
+        )
+        .join(Product, Product.id == Script.product_id)
+        .filter(
+            Script.status == "approved",
+            not_(
+                session.query(Video.id)
+                .filter(Video.script_id == Script.id)
+                .exists()
+            ),
+        )
+        .order_by(Script.created_at.desc())
+        .all()
+    )
+
+    return [
+        {
+            "id": r.id,
+            "hook": r.hook,
+            "body": r.body,
+            "cta": r.cta,
+            "caption": r.caption,
+            "variant": r.variant,
+            "platform": r.platform,
+            "created_at": r.created_at,
+            "product_title": r.product_title,
+        }
+        for r in stmt
+    ]
+
+
 def videos_table(
     session: Session,
     status: str | None = None,

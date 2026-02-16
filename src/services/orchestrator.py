@@ -25,6 +25,7 @@ from sqlalchemy import func, select
 from app.celery_app import celery
 from app.cloudwatch import emit_metric
 from app.logging import get_logger, set_correlation_id, set_run_id
+from app.runtime_settings import get_auto_publish
 from models.daily_run import DailyRun
 from models.database import get_session_cm
 from models.video import Video
@@ -53,7 +54,7 @@ logger = get_logger(service="orchestrator")
 def trigger_daily_pipeline(self) -> dict:
     """Execute the full daily content pipeline.
 
-    This is the single entry point invoked by Celery Beat every day at 09:00
+    This is the single entry point invoked by Celery Beat every day at 07:00
     BRT (see ``celery_app.py``).  It orchestrates health evaluation, product
     selection, script generation, video creation, and publication scheduling.
 
@@ -227,6 +228,9 @@ def trigger_daily_pipeline(self) -> dict:
         step_start = time.monotonic()
         slots_used = 0
 
+        auto_publish = get_auto_publish()
+        logger.info("pipeline.step4.auto_publish", enabled=auto_publish)
+
         # ---- 4a: Process winners first ----
         for product in winners:
             if slots_used >= posts_allowed:
@@ -290,36 +294,41 @@ def trigger_daily_pipeline(self) -> dict:
                         )
 
                         if video_id and video_status:
-                            # Video is ready -- schedule publication
-                            try:
-                                pub_start = time.monotonic()
-                                pub_result: dict = schedule_publication(
-                                    video_id=video_id,
-                                    platform="tiktok",
-                                )
+                            videos_generated += 1
+                            slots_used += 1
 
-                                publications_scheduled += 1
-                                slots_used += 1
-                                videos_generated += 1
-
+                            if not auto_publish:
                                 logger.info(
-                                    "pipeline.step4.publication_scheduled",
+                                    "pipeline.step4.publish_skipped",
                                     video_id=video_id,
-                                    publication_id=pub_result.get("publication_id"),
-                                    platform="tiktok",
                                     phase="winner",
-                                    duration_s=round(time.monotonic() - pub_start, 2),
+                                    reason="auto_publish_disabled",
                                 )
+                            else:
+                                try:
+                                    pub_start = time.monotonic()
+                                    pub_result: dict = schedule_publication(
+                                        video_id=video_id,
+                                        platform="tiktok",
+                                    )
 
-                            except Exception:
-                                logger.exception(
-                                    "pipeline.step4.publish_error",
-                                    video_id=video_id,
-                                    phase="winner",
-                                )
-                                # Video was generated but publish failed.
-                                # Still count the video.
-                                videos_generated += 1
+                                    publications_scheduled += 1
+
+                                    logger.info(
+                                        "pipeline.step4.publication_scheduled",
+                                        video_id=video_id,
+                                        publication_id=pub_result.get("publication_id"),
+                                        platform="tiktok",
+                                        phase="winner",
+                                        duration_s=round(time.monotonic() - pub_start, 2),
+                                    )
+
+                                except Exception:
+                                    logger.exception(
+                                        "pipeline.step4.publish_error",
+                                        video_id=video_id,
+                                        phase="winner",
+                                    )
                         else:
                             logger.warning(
                                 "pipeline.step4.video_not_ready",
@@ -413,33 +422,41 @@ def trigger_daily_pipeline(self) -> dict:
                         )
 
                         if video_id and video_status:
-                            try:
-                                pub_start = time.monotonic()
-                                pub_result = schedule_publication(
-                                    video_id=video_id,
-                                    platform="tiktok",
-                                )
+                            videos_generated += 1
+                            slots_used += 1
 
-                                publications_scheduled += 1
-                                slots_used += 1
-                                videos_generated += 1
-
+                            if not auto_publish:
                                 logger.info(
-                                    "pipeline.step4.publication_scheduled",
+                                    "pipeline.step4.publish_skipped",
                                     video_id=video_id,
-                                    publication_id=pub_result.get("publication_id"),
-                                    platform="tiktok",
                                     phase="new_product",
-                                    duration_s=round(time.monotonic() - pub_start, 2),
+                                    reason="auto_publish_disabled",
                                 )
+                            else:
+                                try:
+                                    pub_start = time.monotonic()
+                                    pub_result = schedule_publication(
+                                        video_id=video_id,
+                                        platform="tiktok",
+                                    )
 
-                            except Exception:
-                                logger.exception(
-                                    "pipeline.step4.publish_error",
-                                    video_id=video_id,
-                                    phase="new_product",
-                                )
-                                videos_generated += 1
+                                    publications_scheduled += 1
+
+                                    logger.info(
+                                        "pipeline.step4.publication_scheduled",
+                                        video_id=video_id,
+                                        publication_id=pub_result.get("publication_id"),
+                                        platform="tiktok",
+                                        phase="new_product",
+                                        duration_s=round(time.monotonic() - pub_start, 2),
+                                    )
+
+                                except Exception:
+                                    logger.exception(
+                                        "pipeline.step4.publish_error",
+                                        video_id=video_id,
+                                        phase="new_product",
+                                    )
                         else:
                             logger.warning(
                                 "pipeline.step4.video_not_ready",

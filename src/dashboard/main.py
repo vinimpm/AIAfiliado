@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
+from app.runtime_settings import get_auto_publish, set_auto_publish
 from dashboard.config import dash_settings
 from dashboard.pages import financeiro, health, overview, performance, pipeline, products
 from models.database import get_session_cm
@@ -57,6 +58,22 @@ PAGES = {
 }
 
 selected = st.sidebar.radio("Navegacao", list(PAGES.keys()))
+
+st.sidebar.divider()
+
+# --- Auto-Publish Toggle ---
+_current_auto_pub = get_auto_publish()
+auto_pub_toggle = st.sidebar.toggle(
+    "Auto-Publish",
+    value=_current_auto_pub,
+    help="Quando ativado, videos sao publicados automaticamente no TikTok. "
+    "Quando desativado, videos sao gerados mas NAO publicados.",
+)
+if auto_pub_toggle != _current_auto_pub:
+    set_auto_publish(auto_pub_toggle)
+    st.sidebar.success(
+        f"Auto-Publish {'ativado' if auto_pub_toggle else 'desativado'}!"
+    )
 
 st.sidebar.divider()
 st.sidebar.caption(f"Auto-refresh: {dash_settings.REFRESH_INTERVAL_SECONDS}s")

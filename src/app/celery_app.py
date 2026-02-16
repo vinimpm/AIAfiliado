@@ -59,7 +59,7 @@ def emit_celery_queue_size():
 celery.conf.beat_schedule = {
     "trigger-daily-pipeline": {
         "task": "services.orchestrator.trigger_daily_pipeline",
-        "schedule": crontab(hour=9, minute=0),  # 09:00 BRT
+        "schedule": crontab(hour=7, minute=0),  # 07:00 BRT
     },
     "collect-all-metrics": {
         "task": "services.analytics_service.collect_all_metrics",

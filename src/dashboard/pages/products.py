@@ -40,12 +40,17 @@ def render(session: Session):
             with col_a:
                 title = st.text_input("Nome do Produto *")
                 price = st.number_input("Preco (R$) *", min_value=0.01, value=49.90, step=0.01)
-                commission = st.number_input("Comissao (R$) *", min_value=0.01, value=5.00, step=0.01)
+                commission_pct = st.number_input(
+                    "Comissao (%) *", min_value=0.1, max_value=100.0, value=10.0, step=0.5
+                )
 
             with col_b:
                 source_platform = st.selectbox("Plataforma *", options=_PLATFORMS)
                 category = st.selectbox("Categoria *", options=_CATEGORIES)
                 affiliate_url = st.text_input("Link de Afiliado *")
+
+            commission_value = round(price * commission_pct / 100, 2)
+            st.caption(f"Comissao estimada: **R$ {commission_value:.2f}** por venda")
 
             submitted = st.form_submit_button("Adicionar Produto", use_container_width=True)
 
@@ -58,7 +63,7 @@ def render(session: Session):
                         source_platform=source_platform,
                         title=title.strip(),
                         price=price,
-                        commission=commission,
+                        commission=commission_value,
                         affiliate_url=affiliate_url.strip(),
                         category=category,
                         status="validated",
@@ -67,7 +72,10 @@ def render(session: Session):
                     )
                     session.add(product)
                     session.commit()
-                    st.success(f"Produto '{title}' adicionado com sucesso!")
+                    st.success(
+                        f"Produto '{title}' adicionado! "
+                        f"Comissao: R$ {commission_value:.2f} ({commission_pct}%)"
+                    )
 
     st.divider()
 

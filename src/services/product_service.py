@@ -635,6 +635,9 @@ def retire_stale_products(self) -> int:
                     # Products that were never used or whose last usage is
                     # older than the cutoff date.
                     (Product.last_used_at.is_(None)) | (Product.last_used_at < cutoff),
+                    # Grace period: don't retire products created recently
+                    # (allows manually added products time to be picked up).
+                    Product.created_at < cutoff,
                 )
             )
 

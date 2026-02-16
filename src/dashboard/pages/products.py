@@ -7,6 +7,8 @@ from datetime import UTC, datetime
 import streamlit as st
 from sqlalchemy.orm import Session
 
+from sqlalchemy import select
+
 from dashboard.components.charts import bar_chart, pie_chart
 from dashboard.components.filters import platform_filter, status_filter
 from dashboard.data import queries
@@ -93,8 +95,29 @@ def render(session: Session):
     st.subheader("Catalogo de Produtos")
     df_prods = queries.products_table(session, platform=platform, status=status)
     if not df_prods.empty:
-        st.dataframe(df_prods, use_container_width=True, hide_index=True)
+        st.dataframe(df_prods, width="stretch", hide_index=True)
         st.caption(f"{len(df_prods)} produtos encontrados")
+
+        # --- Reactivate retired products ---
+        retired = session.execute(
+            select(Product).where(Product.status == "retired")
+        ).scalars().all()
+        if retired:
+            with st.expander(f"Reativar Produtos Retirados ({len(retired)})", expanded=False):
+                st.caption(
+                    "Produtos abaixo foram retirados automaticamente. "
+                    "Clique para reativar e incluir no proximo pipeline."
+                )
+                for p in retired:
+                    col_name, col_btn = st.columns([4, 1])
+                    col_name.write(f"**{p.title}** ({p.source_platform})")
+                    if col_btn.button("Reativar", key=f"reactivate_{p.id}"):
+                        p.status = "validated"
+                        p.is_active = True
+                        p.validated_at = datetime.now(UTC)
+                        session.commit()
+                        st.success(f"Produto '{p.title}' reativado!")
+                        st.rerun()
     else:
         st.info("Nenhum produto encontrado com os filtros selecionados.")
 
@@ -104,7 +127,7 @@ def render(session: Session):
     st.subheader("Vencedores (Ativos)")
     df_winners = queries.winners(session)
     if not df_winners.empty:
-        st.dataframe(df_winners, use_container_width=True, hide_index=True)
+        st.dataframe(df_winners, width="stretch", hide_index=True)
         total_rev = df_winners["total_revenue"].sum()
         total_sales = df_winners["total_sales"].sum()
         st.markdown(f"**Total:** {int(total_sales)} vendas | R$ {float(total_rev):,.2f} receita")
@@ -125,7 +148,7 @@ def render(session: Session):
                 names="source_platform",
                 values="count",
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         else:
             st.info("Sem dados.")
 
@@ -141,6 +164,6 @@ def render(session: Session):
                 labels={"total_revenue": "Receita (R$)", "title": "Produto"},
             )
             fig.update_layout(yaxis={"categoryorder": "total ascending"})
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         else:
             st.info("Sem dados.")

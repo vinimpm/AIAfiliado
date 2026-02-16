@@ -74,7 +74,7 @@ def render(session: Session):
                 title="",
                 labels={"run_date": "Data", "count": "Runs"},
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         else:
             st.info("Sem dados de execucao no periodo.")
 

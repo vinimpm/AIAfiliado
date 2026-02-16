@@ -43,7 +43,7 @@ def render(session: Session):
             max_val=100,
             thresholds={"green": 60, "yellow": 85, "red": 100},
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     # --- Cost vs Revenue ---
     with col2:
@@ -56,7 +56,7 @@ def render(session: Session):
                 y=["cost", "revenue"],
                 labels={"day": "Data", "value": "Valor", "variable": "Tipo"},
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         else:
             st.info("Sem dados financeiros no periodo.")
 
@@ -71,6 +71,6 @@ def render(session: Session):
             labels={"day": "Data", "pnl": "P&L Acumulado (R$)"},
         )
         fig.add_hline(y=0, line_dash="dash", line_color="gray")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
     else:
         st.info("Sem dados de P&L.")

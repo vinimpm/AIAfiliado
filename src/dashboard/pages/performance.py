@@ -25,7 +25,7 @@ def render(session: Session):
             y=["views", "likes", "shares"],
             labels={"day": "Data", "value": "Total", "variable": "Metrica"},
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
     else:
         st.info("Sem dados de engajamento.")
 
@@ -42,7 +42,7 @@ def render(session: Session):
                 labels={"retention_3s": "Retencao 3s"},
                 nbins=20,
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         else:
             st.info("Sem dados de retencao.")
 
@@ -55,7 +55,7 @@ def render(session: Session):
                 stages=["Views", "Clicks", "Sales"],
                 values=[funnel["views"], funnel["clicks"], funnel["sales"]],
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
             st.markdown(f"**CTR:** {funnel['ctr']:.2%} | **CVR:** {funnel['cvr']:.2%}")
         else:
             st.info("Sem dados de conversao.")
@@ -66,7 +66,7 @@ def render(session: Session):
     st.subheader("Comparacao A/B")
     df_ab = queries.ab_comparison(session, days=days)
     if not df_ab.empty:
-        st.dataframe(df_ab, use_container_width=True, hide_index=True)
+        st.dataframe(df_ab, width="stretch", hide_index=True)
     else:
         st.info("Sem dados A/B no periodo.")
 
@@ -74,6 +74,6 @@ def render(session: Session):
     st.subheader("Top 10 Publicacoes por Views")
     df_top = queries.top_publications(session, days=days, limit=10)
     if not df_top.empty:
-        st.dataframe(df_top, use_container_width=True, hide_index=True)
+        st.dataframe(df_top, width="stretch", hide_index=True)
     else:
         st.info("Sem publicacoes no periodo.")

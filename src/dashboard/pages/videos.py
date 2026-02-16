@@ -89,7 +89,7 @@ def render(session: Session):
         st.subheader("Por Status")
         if not df_by_status.empty:
             fig = pie_chart(df_by_status, names="status", values="count")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         else:
             st.info("Sem dados.")
 

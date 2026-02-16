@@ -74,7 +74,7 @@ class Settings(BaseSettings):
     RETIRE_AFTER_DAYS_NO_SALES: int = 7
 
     # --- Trend Scoring ---
-    TREND_MIN_SCORE: float = 60.0
+    TREND_MIN_SCORE: float = 25.0
     SIMILARITY_THRESHOLD: float = 0.85
     RECENT_SCRIPTS_COMPARE: int = 10
     MAX_RETRIES_ON_DUPLICATE: int = 3

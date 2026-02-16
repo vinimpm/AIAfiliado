@@ -39,7 +39,7 @@ def render(session: Session):
                 title="Risk Score Atual",
                 max_val=100,
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
         with col_info:
             color = _risk_color(health["risk_level"])
@@ -70,7 +70,7 @@ def render(session: Session):
         )
         fig.add_hline(y=70, line_dash="dash", line_color="red", annotation_text="HIGH")
         fig.add_hline(y=40, line_dash="dash", line_color="orange", annotation_text="MEDIUM")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
         # Timeline table with colored risk levels
         st.subheader("Timeline de Niveis")
@@ -79,7 +79,7 @@ def render(session: Session):
                 lambda v: f"color: {_risk_color(v)}; font-weight: bold",
                 subset=["risk_level"],
             ),
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
     else:
@@ -108,7 +108,7 @@ def render(session: Session):
                 labels={"run_date": "Data", "count": "Posts", "tipo": "Tipo"},
                 barmode="group",
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         else:
             st.info("Sem dados.")
 
@@ -123,6 +123,6 @@ def render(session: Session):
                 y="cooldown_minutes",
                 labels={"run_date": "Data", "cooldown_minutes": "Minutos"},
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         else:
             st.info("Sem dados de cooldown.")

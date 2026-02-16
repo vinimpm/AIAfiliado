@@ -121,7 +121,7 @@ def render(session: Session):
     df_runs = queries.daily_runs_table(session, days=days)
     if not df_runs.empty:
         styled = df_runs.style.map(_style_risk_level, subset=["risk_level"])
-        st.dataframe(styled, use_container_width=True, hide_index=True)
+        st.dataframe(styled, width="stretch", hide_index=True)
     else:
         st.info("Sem execucoes no periodo.")
 
@@ -142,7 +142,7 @@ def render(session: Session):
             )
             fig.add_hline(y=70, line_dash="dash", line_color="red", annotation_text="HIGH")
             fig.add_hline(y=40, line_dash="dash", line_color="orange", annotation_text="MEDIUM")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         else:
             st.info("Sem dados.")
 
@@ -156,7 +156,7 @@ def render(session: Session):
                 y="success_rate",
                 labels={"run_date": "Data", "success_rate": "Taxa (%)"},
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         else:
             st.info("Sem dados.")
 
@@ -169,6 +169,6 @@ def render(session: Session):
             y="duration_min",
             labels={"run_date": "Data", "duration_min": "Minutos"},
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
     else:
         st.info("Sem dados de duracao.")

@@ -59,10 +59,15 @@ FORMATO DE RESPOSTA (JSON):
 REGRAS:
 - O roteiro deve ser em portugues brasileiro informal e natural.
 - Conecte a trend ao produto de forma organica.
-- NAO faca alegacoes medicas, financeiras ou garantias absolutas.
+- NAO faca alegacoes medicas (curar, tratar, prevenir doencas). Para cosmeticos, use
+  linguagem de experiencia pessoal: "minha pele ficou mais bonita", "senti diferenca na
+  hidratacao". NUNCA diga "regenera", "rejuvenesce", "anti-idade", "resultados rapidos".
+- NAO faca promessas financeiras ou garantias absolutas. NUNCA diga "garantido",
+  "funciona para todos", "resultado comprovado".
 - NAO use falsa escassez (ex: "ultimas unidades", "so hoje", "vai acabar", "oferta limitada").
 - NAO use falso endosso.
-- O tom deve ser autentico, como um amigo recomendando algo.
+- O tom deve ser autentico, como um amigo recomendando algo que gostou.
+- Use apenas opiniao pessoal: "eu amei", "gostei demais", "recomendo", "confere la".
 - OBRIGATORIO: A caption DEVE incluir "#publi" ou "#ad" para transparencia de afiliado.
 - Inclua 3-5 hashtags relevantes na caption alem do #publi.
 - A duracao estimada deve ficar entre 20 e 45 segundos.
@@ -89,15 +94,15 @@ VARIANT_MODIFIERS: dict[str, str] = {
         "ESTILO VARIANTE A:\n"
         "- Use um hook no formato de PERGUNTA que gere curiosidade.\n"
         "- Ex: 'Voce sabia que...?', 'Ja ouviu falar de...?'\n"
-        "- O CTA deve ser um convite direto e amigavel.\n"
-        "- Ex: 'Da uma olhada, vale muito a pena', 'Confere la no link da bio'"
+        "- O CTA deve ser um convite casual e leve.\n"
+        "- Ex: 'Confere la no link da bio', 'Da uma olhada, eu amei'"
     ),
     "B": (
         "ESTILO VARIANTE B:\n"
-        "- Use um hook no formato de FATO SURPREENDENTE ou estatistica.\n"
-        "- Ex: 'Milhares de pessoas ja...', 'Esse produto viralizou porque...'\n"
-        "- O CTA deve usar PROVA SOCIAL.\n"
-        "- Ex: 'Muita gente ja esta usando', 'Veja o que o pessoal esta falando'"
+        "- Use um hook no formato de EXPERIENCIA PESSOAL.\n"
+        "- Ex: 'Gente, eu testei e...', 'Achei esse produto e precisava compartilhar...'\n"
+        "- O CTA deve usar PROVA SOCIAL leve.\n"
+        "- Ex: 'O pessoal ta amando', 'Confere nos comentarios o que o pessoal achou'"
     ),
 }
 

@@ -118,17 +118,27 @@ ROTEIRO:
 - CTA: {cta}
 - Caption: {caption}
 
-REGRAS:
-1. Nao fazer alegacoes medicas (curar, tratar, prevenir doencas).
-2. Nao fazer promessas financeiras irreais (enriquecer, renda garantida).
-3. Nao usar falsa escassez EXPLICITA (ex: "ultimas unidades", "so hoje", "vai acabar").
-   NOTA: Frases comuns como "aproveita", "nao perde", "vale a pena" NAO sao falsa escassez.
-4. Nao usar falso endosso (recomendado por medicos, celebridade usa).
-5. Nao fazer garantias absolutas (100% garantido, funciona para todos).
+REGRAS (APENAS rejeite se houver violacao CLARA e EXPLICITA):
+1. Alegacoes medicas: APENAS rejeite se disser "cura", "trata", "previne doencas",
+   "clinicamente comprovado". Descrever beneficios cosmeticos ("pele mais bonita",
+   "hidratada", "macia") NAO e violacao. Opiniao pessoal ("minha pele ficou otima")
+   NAO e violacao.
+2. Promessas financeiras irreais (enriquecer, renda garantida).
+3. Falsa escassez: APENAS rejeite se usar "ultimas unidades", "so hoje", "vai acabar",
+   "oferta limitada". Frases como "aproveita", "nao perde", "vale a pena", "confere la",
+   "recomendo" NAO sao falsa escassez e NAO devem ser rejeitadas.
+4. Falso endosso (recomendado por medicos, celebridade usa).
+5. Garantias absolutas: APENAS rejeite se usar "100% garantido", "funciona para todos",
+   "resultado garantido", "nunca falha". Opiniao pessoal como "eu amei", "gostei demais",
+   "vale a pena", "recomendo" NAO sao garantias e NAO devem ser rejeitadas.
 6. Nao incluir links diretos em plataformas que proibem (TikTok, Instagram).
 7. O CTA deve ser compativel com a plataforma.
 8. Transparencia: a caption deve conter "#publi", "#ad" ou mencao de afiliado.
    Se a caption contiver "#publi" ou "#ad", esta regra esta CUMPRIDA.
+
+IMPORTANTE: Na duvida, APROVE. Este e um conteudo de marketing informal no Brasil.
+Opiniao pessoal, entusiasmo e recomendacao generica sao PERMITIDOS e comuns.
+Apenas rejeite violacoes claras e explicitas das regras acima.
 
 Responda com o seguinte JSON:
 {{
